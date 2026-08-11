@@ -182,6 +182,7 @@
 | Magisto | [https://www.magisto.com](https://www.magisto.com) |
 | CBS | [https://www.cbs.com](https://www.cbs.com) |
 | FC2 Video | [https://video.fc2.com](https://video.fc2.com) |
+| 巴哈姆特动画疯 | [https://ani.gamer.com.tw](https://ani.gamer.com.tw/) |
 
 |  音频网站   | URL    |
 | --- | --- |

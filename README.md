@@ -181,6 +181,7 @@ Below is a list of some common websites for easy click testing:
 | Magisto | [https://www.magisto.com](https://www.magisto.com) |
 | CBS | [https://www.cbs.com](https://www.cbs.com) |
 | FC2 Video | [https://video.fc2.com](https://video.fc2.com) |
+| Bahamute | [https://ani.gamer.com.tw](https://ani.gamer.com.tw/) |
 
 | Audio Websites | URL |
 | --- | --- |
