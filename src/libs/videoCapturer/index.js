@@ -128,9 +128,13 @@ function seekVideo (videoEl, targetTime) {
 }
 
 /* 方案2：重拉视频源为 blob 后，重新绘制一次，绕开 CORS 污染；同一视频源只下载一次 */
-async function captureViaBlob (video, title) {
+async function captureViaBlob (video, title, enableCrossOriginCapture) {
   const srcUrl = getVideoSourceUrl(video)
-  if (!srcUrl || /^blob:/i.test(srcUrl)) return null
+  /* HLS/MSE/DASH 等非直链源无法通过重拉 blob 绕过 CORS（m3u8 为播放列表文本，
+   * 拉回后无法解码），且重拉会造成无谓的全量下载与解码报错，故直接短路退回预览 */
+  if (!srcUrl) return null
+  if (!/^https?:/i.test(srcUrl)) return null
+  if (/\.m3u8($|\?)/i.test(srcUrl)) return null
 
   evictOtherVideos(srcUrl)
   const record = await getCachedVideo(srcUrl)
