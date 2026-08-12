@@ -3467,7 +3467,7 @@ function getVideoSourceUrl (video) {
 }
 
 /* 通过 GM_xmlhttpRequest 拉取跨域视频字节，返回 Blob */
-function fetchVideoBlob (url) {
+function fetchVideoBlob (url, withCredentials) {
   return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest;
     if (typeof gm !== 'function') {
@@ -3477,12 +3477,13 @@ function fetchVideoBlob (url) {
       method: 'GET',
       url,
       responseType: 'arraybuffer',
-      withCredentials: true,
+      withCredentials,
       headers: { Referer: location.href },
       onerror: (err) => reject(err),
       onload: (res) => {
         if (res.status >= 400) return reject(new Error('HTTP ' + res.status))
-        const blob = new Blob([res.response], { type: 'video/mp4' });
+        /* 省略 type，交给浏览器按容器字节嗅探（mp4/webm 均可靠，避免硬编码误判） */
+        const blob = new Blob([res.response]);
         resolve(blob);
       }
     });
@@ -3501,11 +3502,53 @@ function drawVideoToCanvas (video) {
 /* 缓存同一个视频源下载好的 blob 及其临时 video，保证一个影片只下载一次 */
 const videoCache = new Map();
 
+/* 大于 1G 的视频不缓存，避免内存占用过高 */
+const MAX_CACHE_SIZE = 1024 * 1024 * 1024;
+/* 超过 4 小时没有再次截图，自动释放缓存 */
+const CACHE_IDLE_TIMEOUT = 4 * 60 * 60 * 1000;
+
+/* 全量下载前探测视频大小：发 Range: bytes=0-0 请求，从 content-range 读取总大小；无法判断时返回 0 */
+function probeVideoSize (url, withCredentials) {
+  return new Promise(function (resolve) {
+    const gm = window.GM_xmlhttpRequest;
+    if (typeof gm !== 'function') return resolve(0)
+    gm({
+      method: 'GET',
+      url,
+      responseType: 'arraybuffer',
+      withCredentials,
+      headers: { Referer: location.href, Range: 'bytes=0-0' },
+      onerror: () => resolve(0),
+      onload: (res) => {
+        if (res.status >= 400) return resolve(0)
+        const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : '';
+        const lower = headers.toLowerCase();
+        const rangeMatch = lower.match(/content-range:\s*bytes\s+0-0\/(\d+)/);
+        if (rangeMatch) return resolve(parseInt(rangeMatch[1], 10))
+        const lengthMatch = lower.match(/content-length:\s*(\d+)/);
+        if (lengthMatch) return resolve(parseInt(lengthMatch[1], 10))
+        resolve(0);
+      }
+    });
+  })
+}
+
 /* 当切换到新视频源时，释放旧视频占用的内存，避免一个页面累计下载多部影片 */
 function evictOtherVideos (keepUrl) {
   videoCache.forEach(function (record, key) {
     if (key !== keepUrl && record.objectUrl) {
       URL.revokeObjectURL(record.objectUrl);
+      videoCache.delete(key);
+    }
+  });
+}
+
+/* 释放超过 CACHE_IDLE_TIMEOUT 未被使用的缓存记录 */
+function evictExpiredCache () {
+  const now = Date.now();
+  videoCache.forEach(function (record, key) {
+    if (now - record.lastUsed > CACHE_IDLE_TIMEOUT) {
+      if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
       videoCache.delete(key);
     }
   });
@@ -3520,7 +3563,7 @@ function loadVideoFromBlob (blob) {
     tempVideo.playsInline = true;
     tempVideo.preload = 'auto';
     tempVideo.src = objectUrl;
-    tempVideo.addEventListener('loadedmetadata', function () {
+    tempVideo.addEventListener('loadeddata', function () {
       resolve({ videoEl: tempVideo, objectUrl });
     }, { once: true });
     tempVideo.addEventListener('error', function () {
@@ -3529,16 +3572,19 @@ function loadVideoFromBlob (blob) {
   })
 }
 
-/* 获取（或下载并缓存）视频源对应的临时 video */
-function getCachedVideo (srcUrl) {
-  const cached = videoCache.get(srcUrl);
+/* 获取（或下载并缓存）视频源对应的临时 video；options.cacheable 为 false 时不写入缓存 */
+function getCachedVideo (srcUrl, options) {
+  options = options || {};
+  const cacheable = !!options.cacheable;
+  const cached = cacheable ? videoCache.get(srcUrl) : null;
   if (cached) {
+    cached.lastUsed = Date.now();
     return cached.promise || Promise.resolve(cached)
   }
 
-  const record = { promise: null, videoEl: null, objectUrl: '' };
-  videoCache.set(srcUrl, record);
-  record.promise = fetchVideoBlob(srcUrl)
+  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable };
+  if (cacheable) videoCache.set(srcUrl, record);
+  record.promise = fetchVideoBlob(srcUrl, options.withCredentials)
     .then(loadVideoFromBlob)
     .then(function (loaded) {
       record.videoEl = loaded.videoEl;
@@ -3547,7 +3593,7 @@ function getCachedVideo (srcUrl) {
       return record
     })
     .catch(function (err) {
-      videoCache.delete(srcUrl);
+      if (cacheable) videoCache.delete(srcUrl);
       throw err
     });
   return record.promise
@@ -3556,22 +3602,42 @@ function getCachedVideo (srcUrl) {
 function seekVideo (videoEl, targetTime) {
   if (!targetTime || targetTime <= 0 || !videoEl.duration) return Promise.resolve()
   return new Promise(function (resolve, reject) {
-    videoEl.addEventListener('seeked', resolve, { once: true });
+    const onSeeked = function () {
+      /* seeked 后若首帧数据尚未就绪（readyState < HAVE_CURRENT_DATA），
+       * 需等 loadeddata 再绘制，避免截到黑帧 */
+      if (videoEl.readyState >= 2) return resolve()
+      videoEl.addEventListener('loadeddata', resolve, { once: true });
+    };
+    videoEl.addEventListener('seeked', onSeeked, { once: true });
     videoEl.addEventListener('error', reject, { once: true });
     videoEl.currentTime = Math.min(targetTime, videoEl.duration);
   })
 }
 
 /* 方案2：重拉视频源为 blob 后，重新绘制一次，绕开 CORS 污染；同一视频源只下载一次 */
-async function captureViaBlob (video, title) {
+async function captureViaBlob (video, title, enableCrossOriginCapture) {
   const srcUrl = getVideoSourceUrl(video);
-  if (!srcUrl || /^blob:/i.test(srcUrl)) return null
+  /* HLS/MSE/DASH 等非直链源无法通过重拉 blob 绕过 CORS（m3u8 为播放列表文本，
+   * 拉回后无法解码），且重拉会造成无谓的全量下载与解码报错，故直接短路退回预览 */
+  if (!srcUrl) return null
+  if (!/^https?:/i.test(srcUrl)) return null
+  if (/\.m3u8($|\?)/i.test(srcUrl)) return null
 
+  evictExpiredCache();
   evictOtherVideos(srcUrl);
-  const record = await getCachedVideo(srcUrl);
+
+  /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高 */
+  const size = await probeVideoSize(srcUrl, !!enableCrossOriginCapture);
+  const cacheable = size > 0 && size <= MAX_CACHE_SIZE;
+
+  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable });
   await seekVideo(record.videoEl, video.currentTime || 0);
 
   const canvas = drawVideoToCanvas(record.videoEl);
+  if (!record.cacheable && record.objectUrl) {
+    URL.revokeObjectURL(record.objectUrl);
+    record.objectUrl = '';
+  }
   return { canvas, title }
 }
 
@@ -3590,7 +3656,10 @@ var videoCapturer = {
     const currentTime = `${Math.floor(video.currentTime / 60)}'${(video.currentTime % 60).toFixed(3)}''`;
     const captureTitle = title || `${document.title}_${currentTime}`;
 
-    /* 截图核心逻辑 */
+    /* 截图核心逻辑
+     * 注意：不再对 video 设置 crossorigin="anonymous"——视频加载完成后设置该属性
+     * 只会强制视频以 CORS 模式重载，导致跨域源（如 anime1）反复报错并中断播放，
+     * 且对已污染的 canvas 无效（见 PR #1 审查） */
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -3651,10 +3720,10 @@ var videoCapturer = {
 
       // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览（需在设置中开启）
       if (enableCrossOriginCapture && !noFallback) {
-        captureViaBlob(video, title)
+        captureViaBlob(video, title, enableCrossOriginCapture)
           .then(function (result) {
             if (!result) return videoCapturer.previe(canvas, title)
-            videoCapturer.download(result.canvas, result.title, video, true);
+            videoCapturer.download(result.canvas, result.title, video, true, enableCrossOriginCapture);
           })
           .catch(function (err) {
             console.error('重拉视频源失败，退回预览。', err);
@@ -4016,6 +4085,7 @@ var zhCN = {
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
   crossOriginCapture: '启用跨CORS截图',
   disableCrossOriginCapture: '禁用跨CORS截图',
+  crossOriginCaptureDesc: '截图被 CORS 阻断时，重新拉取视频源截图',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',
@@ -4167,6 +4237,7 @@ var enUS = {
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
   crossOriginCapture: 'Enable cross-CORS capture',
   disableCrossOriginCapture: 'Disable cross-CORS capture',
+  crossOriginCaptureDesc: 'Refetch the video source for the screenshot when it is blocked by CORS',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',
@@ -4316,6 +4387,7 @@ var ru = {
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
   crossOriginCapture: 'Включить снятие скриншотов через CORS',
   disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
+  crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',
@@ -4464,6 +4536,7 @@ var zhTW = {
   disableAutoGotoBufferedTime: '禁用自動跟隨跳轉到緩衝區時間',
   crossOriginCapture: '啟用跨CORS截圖',
   disableCrossOriginCapture: '禁用跨CORS截圖',
+  crossOriginCaptureDesc: '截圖被 CORS 阻斷時，重新拉取影片來源截圖',
   mouse: {
     enable: '啟用鼠標控制',
     disable: '禁用鼠標控制',
