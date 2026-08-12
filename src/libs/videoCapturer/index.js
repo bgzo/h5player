@@ -144,9 +144,12 @@ var videoCapturer = {
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
+   * @param download {boolean} -是否下载截图
+   * @param title {string} -截图标题
+   * @param enableCrossOriginCapture {boolean} -canvas被CORS污染时，是否重拉视频源绕开限制下载
    * @returns {boolean}
    */
-  capture (video, download, title) {
+  capture (video, download, title, enableCrossOriginCapture) {
     if (!video) return false
     const t = this
     const currentTime = `${Math.floor(video.currentTime / 60)}'${(video.currentTime % 60).toFixed(3)}''`
@@ -160,7 +163,7 @@ var videoCapturer = {
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     if (download) {
-      t.download(canvas, captureTitle, video)
+      t.download(canvas, captureTitle, video, false, enableCrossOriginCapture)
     } else {
       t.previe(canvas, captureTitle)
     }
@@ -183,7 +186,7 @@ var videoCapturer = {
    * canvas 下载截取到的内容
    * @param canvas
    */
-  download (canvas, title, video, noFallback) {
+  download (canvas, title, video, noFallback, enableCrossOriginCapture) {
     title = title || 'videoCapturer_' + Date.now()
 
     try {
@@ -211,8 +214,8 @@ var videoCapturer = {
       console.error('视频源受CORS标识限制，无法直接下载截图，将尝试重拉视频源，见：\n https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS')
       console.error(video, e)
 
-      // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览
-      if (!noFallback) {
+      // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览（需在设置中开启）
+      if (enableCrossOriginCapture && !noFallback) {
         captureViaBlob(video, title)
           .then(function (result) {
             if (!result) return videoCapturer.previe(canvas, title)

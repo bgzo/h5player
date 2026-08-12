@@ -1442,6 +1442,14 @@ const h5Player = {
     t.tips(t.autoGotoBufferedTime ? i18n.t('autoGotoBufferedTime') : i18n.t('disableAutoGotoBufferedTime'))
   },
 
+  /* 切换：截图被CORS污染时，是否重拉视频源绕开限制下载 */
+  toggleCrossOriginCapture () {
+    const t = this
+    const enable = !configManager.get('enhance.allowCrossOriginCapture')
+    configManager.setGlobalStorage('enhance.allowCrossOriginCapture', enable)
+    t.tips(enable ? i18n.t('crossOriginCapture') : i18n.t('disableCrossOriginCapture'))
+  },
+
   /**
    * 切换画中画功能
    */
@@ -1917,7 +1925,7 @@ const h5Player = {
 
   capture () {
     const player = this.player()
-    videoCapturer.capture(player, true)
+    videoCapturer.capture(player, true, undefined, configManager.get('enhance.allowCrossOriginCapture'))
 
     /* 暂停画面 */
     if (!player.paused && !document.pictureInPictureElement && document.visibilityState !== 'visible') {

@@ -4299,6 +4299,11 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('comingSoon'),
               desc: i18n.t('comingSoon')
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('crossOriginCapture')}`,
+              desc: i18n.t('crossOriginCapture'),
+              action: 'toggleCrossOriginCapture'
             }
           ]
         },

@@ -109,6 +109,8 @@ export default {
   ffmpegScript: '音视频合并/转换脚本',
   autoGotoBufferedTime: '自动跟随跳转到缓冲区时间',
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
+  crossOriginCapture: '启用跨CORS截图',
+  disableCrossOriginCapture: '禁用跨CORS截图',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',

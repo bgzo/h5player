@@ -347,6 +347,8 @@ const configManager = new ConfigManager({
       allowAcousticGain: false,
       /* 是否开启跨域控制 */
       allowCrossOriginControl: true,
+      /* 截图被 CORS 污染时，是否重拉视频源绕开限制下载（默认关闭，开启后同一视频源只下载一次并缓存） */
+      allowCrossOriginCapture: false,
       unfoldMenu: false
     },
     language: 'auto',

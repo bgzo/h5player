@@ -2175,6 +2175,8 @@ const configManager = new ConfigManager({
       allowAcousticGain: false,
       /* 是否开启跨域控制 */
       allowCrossOriginControl: true,
+      /* 截图被 CORS 污染时，是否重拉视频源绕开限制下载（默认关闭，开启后同一视频源只下载一次并缓存） */
+      allowCrossOriginCapture: false,
       unfoldMenu: false
     },
     language: 'auto',
@@ -3577,9 +3579,12 @@ var videoCapturer = {
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
+   * @param download {boolean} -是否下载截图
+   * @param title {string} -截图标题
+   * @param enableCrossOriginCapture {boolean} -canvas被CORS污染时，是否重拉视频源绕开限制下载
    * @returns {boolean}
    */
-  capture (video, download, title) {
+  capture (video, download, title, enableCrossOriginCapture) {
     if (!video) return false
     const t = this;
     const currentTime = `${Math.floor(video.currentTime / 60)}'${(video.currentTime % 60).toFixed(3)}''`;
@@ -3593,7 +3598,7 @@ var videoCapturer = {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     if (download) {
-      t.download(canvas, captureTitle, video);
+      t.download(canvas, captureTitle, video, false, enableCrossOriginCapture);
     } else {
       t.previe(canvas, captureTitle);
     }
@@ -3616,7 +3621,7 @@ var videoCapturer = {
    * canvas 下载截取到的内容
    * @param canvas
    */
-  download (canvas, title, video, noFallback) {
+  download (canvas, title, video, noFallback, enableCrossOriginCapture) {
     title = title || 'videoCapturer_' + Date.now();
 
     try {
@@ -3644,8 +3649,8 @@ var videoCapturer = {
       console.error('视频源受CORS标识限制，无法直接下载截图，将尝试重拉视频源，见：\n https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS');
       console.error(video, e);
 
-      // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览
-      if (!noFallback) {
+      // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览（需在设置中开启）
+      if (enableCrossOriginCapture && !noFallback) {
         captureViaBlob(video, title)
           .then(function (result) {
             if (!result) return videoCapturer.previe(canvas, title)
@@ -4009,6 +4014,8 @@ var zhCN = {
   ffmpegScript: '音视频合并/转换脚本',
   autoGotoBufferedTime: '自动跟随跳转到缓冲区时间',
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
+  crossOriginCapture: '启用跨CORS截图',
+  disableCrossOriginCapture: '禁用跨CORS截图',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',
@@ -4158,6 +4165,8 @@ var enUS = {
   ffmpegScript: 'Audio and video merge/convert script',
   autoGotoBufferedTime: 'Automatically jump to the buffered time',
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
+  crossOriginCapture: 'Enable cross-CORS capture',
+  disableCrossOriginCapture: 'Disable cross-CORS capture',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',
@@ -4305,6 +4314,8 @@ var ru = {
   ffmpegScript: 'Скрипт слияния/преобразования аудио и видео',
   autoGotoBufferedTime: 'Автоматически перейти к времени буфера',
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
+  crossOriginCapture: 'Включить снятие скриншотов через CORS',
+  disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',
@@ -4451,6 +4462,8 @@ var zhTW = {
   ffmpegScript: '音視頻合併/轉換腳本',
   autoGotoBufferedTime: '自動跟隨跳轉到緩衝區時間',
   disableAutoGotoBufferedTime: '禁用自動跟隨跳轉到緩衝區時間',
+  crossOriginCapture: '啟用跨CORS截圖',
+  disableCrossOriginCapture: '禁用跨CORS截圖',
   mouse: {
     enable: '啟用鼠標控制',
     disable: '禁用鼠標控制',
@@ -11494,6 +11507,11 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('comingSoon'),
               desc: i18n.t('comingSoon')
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('crossOriginCapture')}`,
+              desc: i18n.t('crossOriginCapture'),
+              action: 'toggleCrossOriginCapture'
             }
           ]
         },
@@ -13859,6 +13877,14 @@ const h5Player = {
     t.tips(t.autoGotoBufferedTime ? i18n.t('autoGotoBufferedTime') : i18n.t('disableAutoGotoBufferedTime'));
   },
 
+  /* 切换：截图被CORS污染时，是否重拉视频源绕开限制下载 */
+  toggleCrossOriginCapture () {
+    const t = this;
+    const enable = !configManager.get('enhance.allowCrossOriginCapture');
+    configManager.setGlobalStorage('enhance.allowCrossOriginCapture', enable);
+    t.tips(enable ? i18n.t('crossOriginCapture') : i18n.t('disableCrossOriginCapture'));
+  },
+
   /**
    * 切换画中画功能
    */
@@ -14328,7 +14354,7 @@ const h5Player = {
 
   capture () {
     const player = this.player();
-    videoCapturer.capture(player, true);
+    videoCapturer.capture(player, true, undefined, configManager.get('enhance.allowCrossOriginCapture'));
 
     /* 暂停画面 */
     if (!player.paused && !document.pictureInPictureElement && document.visibilityState !== 'visible') {

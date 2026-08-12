@@ -106,6 +106,8 @@ export default {
   ffmpegScript: 'Скрипт слияния/преобразования аудио и видео',
   autoGotoBufferedTime: 'Автоматически перейти к времени буфера',
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
+  crossOriginCapture: 'Включить снятие скриншотов через CORS',
+  disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',

@@ -106,6 +106,8 @@ export default {
   ffmpegScript: 'Audio and video merge/convert script',
   autoGotoBufferedTime: 'Automatically jump to the buffered time',
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
+  crossOriginCapture: 'Enable cross-CORS capture',
+  disableCrossOriginCapture: 'Disable cross-CORS capture',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',
