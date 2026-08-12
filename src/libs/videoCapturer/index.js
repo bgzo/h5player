@@ -47,7 +47,8 @@ function fetchVideoBlob (url, withCredentials) {
       onerror: (err) => reject(err),
       onload: (res) => {
         if (res.status >= 400) return reject(new Error('HTTP ' + res.status))
-        const blob = new Blob([res.response], { type: 'video/mp4' })
+        /* 省略 type，交给浏览器按容器字节嗅探（mp4/webm 均可靠，避免硬编码误判） */
+        const blob = new Blob([res.response])
         resolve(blob)
       }
     })
