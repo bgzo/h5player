@@ -221,7 +221,10 @@ var videoCapturer = {
     const currentTime = `${Math.floor(video.currentTime / 60)}'${(video.currentTime % 60).toFixed(3)}''`
     const captureTitle = title || `${document.title}_${currentTime}`
 
-    /* 截图核心逻辑 */
+    /* 截图核心逻辑
+     * 注意：不再对 video 设置 crossorigin="anonymous"——视频加载完成后设置该属性
+     * 只会强制视频以 CORS 模式重载，导致跨域源（如 anime1）反复报错并中断播放，
+     * 且对已污染的 canvas 无效（见 PR #1 审查） */
     const canvas = document.createElement('canvas')
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
