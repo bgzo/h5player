@@ -32,7 +32,7 @@ function getVideoSourceUrl (video) {
 }
 
 /* 通过 GM_xmlhttpRequest 拉取跨域视频字节，返回 Blob */
-function fetchVideoBlob (url) {
+function fetchVideoBlob (url, withCredentials) {
   return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest
     if (typeof gm !== 'function') {
@@ -42,7 +42,7 @@ function fetchVideoBlob (url) {
       method: 'GET',
       url,
       responseType: 'arraybuffer',
-      withCredentials: true,
+      withCredentials,
       headers: { Referer: location.href },
       onerror: (err) => reject(err),
       onload: (res) => {
@@ -95,7 +95,8 @@ function loadVideoFromBlob (blob) {
 }
 
 /* 获取（或下载并缓存）视频源对应的临时 video */
-function getCachedVideo (srcUrl) {
+function getCachedVideo (srcUrl, options) {
+  options = options || {}
   const cached = videoCache.get(srcUrl)
   if (cached) {
     return cached.promise || Promise.resolve(cached)
@@ -103,7 +104,7 @@ function getCachedVideo (srcUrl) {
 
   const record = { promise: null, videoEl: null, objectUrl: '' }
   videoCache.set(srcUrl, record)
-  record.promise = fetchVideoBlob(srcUrl)
+  record.promise = fetchVideoBlob(srcUrl, options.withCredentials)
     .then(loadVideoFromBlob)
     .then(function (loaded) {
       record.videoEl = loaded.videoEl
@@ -137,7 +138,7 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
   if (/\.m3u8($|\?)/i.test(srcUrl)) return null
 
   evictOtherVideos(srcUrl)
-  const record = await getCachedVideo(srcUrl)
+  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture })
   await seekVideo(record.videoEl, video.currentTime || 0)
 
   const canvas = drawVideoToCanvas(record.videoEl)
@@ -220,10 +221,10 @@ var videoCapturer = {
 
       // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览（需在设置中开启）
       if (enableCrossOriginCapture && !noFallback) {
-        captureViaBlob(video, title)
+        captureViaBlob(video, title, enableCrossOriginCapture)
           .then(function (result) {
             if (!result) return videoCapturer.previe(canvas, title)
-            videoCapturer.download(result.canvas, result.title, video, true)
+            videoCapturer.download(result.canvas, result.title, video, true, enableCrossOriginCapture)
           })
           .catch(function (err) {
             console.error('重拉视频源失败，退回预览。', err)
