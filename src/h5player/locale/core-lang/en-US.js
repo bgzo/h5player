@@ -108,6 +108,7 @@ export default {
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
   crossOriginCapture: 'Enable cross-CORS capture',
   disableCrossOriginCapture: 'Disable cross-CORS capture',
+  crossOriginCaptureDesc: 'Refetch the video source for the screenshot when it is blocked by CORS',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',

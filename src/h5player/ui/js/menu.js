@@ -287,7 +287,7 @@ export const menuConfig = [
           },
           {
             title: `${i18n.t('toggleStates')} ${i18n.t('crossOriginCapture')}`,
-            desc: i18n.t('crossOriginCapture'),
+            desc: i18n.t('crossOriginCaptureDesc'),
             action: 'toggleCrossOriginCapture'
           }
         ]
