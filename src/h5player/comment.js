@@ -38,6 +38,8 @@
 // @grant        GM_getTabs
 // @grant        GM_openInTab
 // @grant        GM_setClipboard
+// @grant        GM_xmlhttpRequest
+// @connect       *
 // @run-at       document-start
 // @license      GPL
 // ==/UserScript==
