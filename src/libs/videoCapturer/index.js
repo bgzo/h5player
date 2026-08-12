@@ -127,7 +127,7 @@ function loadVideoFromBlob (blob) {
     tempVideo.playsInline = true
     tempVideo.preload = 'auto'
     tempVideo.src = objectUrl
-    tempVideo.addEventListener('loadedmetadata', function () {
+    tempVideo.addEventListener('loadeddata', function () {
       resolve({ videoEl: tempVideo, objectUrl })
     }, { once: true })
     tempVideo.addEventListener('error', function () {
@@ -166,7 +166,13 @@ function getCachedVideo (srcUrl, options) {
 function seekVideo (videoEl, targetTime) {
   if (!targetTime || targetTime <= 0 || !videoEl.duration) return Promise.resolve()
   return new Promise(function (resolve, reject) {
-    videoEl.addEventListener('seeked', resolve, { once: true })
+    const onSeeked = function () {
+      /* seeked 后若首帧数据尚未就绪（readyState < HAVE_CURRENT_DATA），
+       * 需等 loadeddata 再绘制，避免截到黑帧 */
+      if (videoEl.readyState >= 2) return resolve()
+      videoEl.addEventListener('loadeddata', resolve, { once: true })
+    }
+    videoEl.addEventListener('seeked', onSeeked, { once: true })
     videoEl.addEventListener('error', reject, { once: true })
     videoEl.currentTime = Math.min(targetTime, videoEl.duration)
   })
