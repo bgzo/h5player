@@ -66,11 +66,53 @@ function drawVideoToCanvas (video) {
 /* 缓存同一个视频源下载好的 blob 及其临时 video，保证一个影片只下载一次 */
 const videoCache = new Map()
 
+/* 大于 1G 的视频不缓存，避免内存占用过高 */
+const MAX_CACHE_SIZE = 1024 * 1024 * 1024
+/* 超过 4 小时没有再次截图，自动释放缓存 */
+const CACHE_IDLE_TIMEOUT = 4 * 60 * 60 * 1000
+
+/* 全量下载前探测视频大小：发 Range: bytes=0-0 请求，从 content-range 读取总大小；无法判断时返回 0 */
+function probeVideoSize (url, withCredentials) {
+  return new Promise(function (resolve) {
+    const gm = window.GM_xmlhttpRequest
+    if (typeof gm !== 'function') return resolve(0)
+    gm({
+      method: 'GET',
+      url,
+      responseType: 'arraybuffer',
+      withCredentials,
+      headers: { Referer: location.href, Range: 'bytes=0-0' },
+      onerror: () => resolve(0),
+      onload: (res) => {
+        if (res.status >= 400) return resolve(0)
+        const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : ''
+        const lower = headers.toLowerCase()
+        const rangeMatch = lower.match(/content-range:\s*bytes\s+0-0\/(\d+)/)
+        if (rangeMatch) return resolve(parseInt(rangeMatch[1], 10))
+        const lengthMatch = lower.match(/content-length:\s*(\d+)/)
+        if (lengthMatch) return resolve(parseInt(lengthMatch[1], 10))
+        resolve(0)
+      }
+    })
+  })
+}
+
 /* 当切换到新视频源时，释放旧视频占用的内存，避免一个页面累计下载多部影片 */
 function evictOtherVideos (keepUrl) {
   videoCache.forEach(function (record, key) {
     if (key !== keepUrl && record.objectUrl) {
       URL.revokeObjectURL(record.objectUrl)
+      videoCache.delete(key)
+    }
+  })
+}
+
+/* 释放超过 CACHE_IDLE_TIMEOUT 未被使用的缓存记录 */
+function evictExpiredCache () {
+  const now = Date.now()
+  videoCache.forEach(function (record, key) {
+    if (now - record.lastUsed > CACHE_IDLE_TIMEOUT) {
+      if (record.objectUrl) URL.revokeObjectURL(record.objectUrl)
       videoCache.delete(key)
     }
   })
@@ -94,16 +136,18 @@ function loadVideoFromBlob (blob) {
   })
 }
 
-/* 获取（或下载并缓存）视频源对应的临时 video */
+/* 获取（或下载并缓存）视频源对应的临时 video；options.cacheable 为 false 时不写入缓存 */
 function getCachedVideo (srcUrl, options) {
   options = options || {}
-  const cached = videoCache.get(srcUrl)
+  const cacheable = !!options.cacheable
+  const cached = cacheable ? videoCache.get(srcUrl) : null
   if (cached) {
+    cached.lastUsed = Date.now()
     return cached.promise || Promise.resolve(cached)
   }
 
-  const record = { promise: null, videoEl: null, objectUrl: '' }
-  videoCache.set(srcUrl, record)
+  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable }
+  if (cacheable) videoCache.set(srcUrl, record)
   record.promise = fetchVideoBlob(srcUrl, options.withCredentials)
     .then(loadVideoFromBlob)
     .then(function (loaded) {
@@ -113,7 +157,7 @@ function getCachedVideo (srcUrl, options) {
       return record
     })
     .catch(function (err) {
-      videoCache.delete(srcUrl)
+      if (cacheable) videoCache.delete(srcUrl)
       throw err
     })
   return record.promise
@@ -137,11 +181,21 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
   if (!/^https?:/i.test(srcUrl)) return null
   if (/\.m3u8($|\?)/i.test(srcUrl)) return null
 
+  evictExpiredCache()
   evictOtherVideos(srcUrl)
-  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture })
+
+  /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高 */
+  const size = await probeVideoSize(srcUrl, !!enableCrossOriginCapture)
+  const cacheable = size > 0 && size <= MAX_CACHE_SIZE
+
+  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable })
   await seekVideo(record.videoEl, video.currentTime || 0)
 
   const canvas = drawVideoToCanvas(record.videoEl)
+  if (!record.cacheable && record.objectUrl) {
+    URL.revokeObjectURL(record.objectUrl)
+    record.objectUrl = ''
+  }
   return { canvas, title }
 }
 
