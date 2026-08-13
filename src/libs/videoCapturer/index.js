@@ -55,7 +55,8 @@ function formatBytes (bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i]
 }
 
-/* 创建单次下载的进度记录器（闭包隔离并发下载），由 GM 的 onprogress 回调调用 */
+/* 创建单次下载的进度记录器（闭包隔离并发下载），由 GM 的 onprogress 回调调用；
+ * 每 PROGRESS_LOG_INTERVAL 打印一次 console 进度，并触发 videoCapturer.onProgress 供宿主提示 */
 function createProgressLogger (url) {
   let last = { loaded: 0, time: Date.now() }
   return function (loaded, total) {
@@ -69,7 +70,12 @@ function createProgressLogger (url) {
     if (speed > 0 && total > 0 && loaded < total) {
       remainText = Math.ceil((total - loaded) / speed / 1000) + 's'
     }
-    console.info(`[videoCapturer] 下载进度 ${formatBytes(loaded)} / ${formatBytes(total)} (${percent}%)，预计还需 ${remainText}`, url)
+    const loadedText = formatBytes(loaded)
+    const totalText = formatBytes(total)
+    console.info(`[videoCapturer] 下载进度 ${loadedText} / ${totalText} (${percent}%)，预计还需 ${remainText}`, url)
+    if (typeof videoCapturer.onProgress === 'function') {
+      videoCapturer.onProgress({ loadedText, totalText, percent, remainingText: remainText })
+    }
     last = { loaded, time: now }
   }
 }
@@ -375,6 +381,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 const videoCapturer = {
   /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
   onFused: null,
+  /* 下载进度钩子：由宿主注入，接收 { loadedText, totalText, percent, remainingText } */
+  onProgress: null,
   /* 跨CORS拉取完成后是否自动把视频保存到本地（由宿主根据配置注入，默认开启） */
   autoDownloadCachedVideo: true,
   /**
