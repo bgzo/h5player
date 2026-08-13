@@ -198,13 +198,6 @@ function getCachedVideo (srcUrl, options) {
       record.objectUrl = loaded.objectUrl
       record.promise = null
       failedSrc.delete(srcUrl)
-      if (!cacheable) {
-        /* 非缓存记录：下个微任务释放 objectUrl 并从缓存移除，避免长期占用内存 */
-        queueMicrotask(function () {
-          if (record.objectUrl) URL.revokeObjectURL(record.objectUrl)
-          videoCache.delete(srcUrl)
-        })
-      }
       return record
     })
     .catch(function (err) {
@@ -269,14 +262,17 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob })
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl)
-  await seekVideo(record.videoEl, video.currentTime || 0)
-
-  const canvas = drawVideoToCanvas(record.videoEl)
-  if (!record.cacheable && record.objectUrl) {
-    URL.revokeObjectURL(record.objectUrl)
-    record.objectUrl = ''
+  try {
+    await seekVideo(record.videoEl, video.currentTime || 0)
+    const canvas = drawVideoToCanvas(record.videoEl)
+    return { canvas, title }
+  } finally {
+    if (!record.cacheable && record.objectUrl) {
+      URL.revokeObjectURL(record.objectUrl)
+      record.objectUrl = ''
+      videoCache.delete(srcUrl)
+    }
   }
-  return { canvas, title }
 }
 
 var videoCapturer = {
