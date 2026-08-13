@@ -52,8 +52,8 @@ function fetchVideoBlob (url, withCredentials, timeoutMs) {
       return reject(new Error('GM_xmlhttpRequest 未注册'))
     }
     const timer = setTimeout(function () {
-      /* 部分 GM 宿主无 abort()，缺失时仅 reject（仍能靠熔断挡住后续请求） */
-      if (typeof gmRequest.abort === 'function') gmRequest.abort()
+      /* 部分 GM 宿主无 abort() 或 gm() 返回 undefined，缺失时仅 reject（仍能靠熔断挡住后续请求） */
+      if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort()
       reject(new Error('Fetch timeout'))
     }, timeoutMs || FETCH_TIMEOUT_FALLBACK)
     const gmRequest = gm({
@@ -102,7 +102,7 @@ function probeVideoSize (url, withCredentials) {
     const gm = window.GM_xmlhttpRequest
     if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
     const timer = setTimeout(function () {
-      if (typeof gmRequest.abort === 'function') gmRequest.abort()
+      if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort()
       reject(new Error('Probe timeout'))
     }, FETCH_TIMEOUT_MIN)
     const gmRequest = gm({
