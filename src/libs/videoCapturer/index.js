@@ -181,7 +181,7 @@ function loadVideoFromBlob (blob) {
 }
 
 /* 获取（或下载并缓存）视频源对应的临时 video；统一写入 videoCache 用于并发去重，
- * record.cacheable 标记是否长期驻留，非缓存记录在使用后通过微任务释放 */
+ * record.cacheable 标记是否长期驻留，非缓存记录同样驻留至 evictOtherVideos/evictExpiredCache/pagehide 清理 */
 function getCachedVideo (srcUrl, options) {
   options = options || {}
   const cacheable = !!options.cacheable
@@ -273,17 +273,9 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob })
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl)
-  try {
-    await seekVideo(record.videoEl, video.currentTime || 0)
-    const canvas = drawVideoToCanvas(record.videoEl)
-    return { canvas, title }
-  } finally {
-    if (!record.cacheable && record.objectUrl) {
-      URL.revokeObjectURL(record.objectUrl)
-      record.objectUrl = ''
-      videoCache.delete(srcUrl)
-    }
-  }
+  await seekVideo(record.videoEl, video.currentTime || 0)
+  const canvas = drawVideoToCanvas(record.videoEl)
+  return { canvas, title }
 }
 
 var videoCapturer = {
