@@ -116,6 +116,7 @@ export default {
   downloadCachedVideo: '下載已緩存影片',
   disableDownloadCachedVideo: '關閉下載已緩存影片',
   downloadCachedVideoDesc: '跨CORS拉取完成後自動把影片保存到本地；開啟時若已緩存則立即下載，命中緩存不重新請求',
+  downloadProgress: '影片下載中 {loaded} / {total}（{percent}%），預計還需 {remaining}',
   mouse: {
     enable: '啟用鼠標控制',
     disable: '禁用鼠標控制',

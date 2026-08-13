@@ -2728,6 +2728,14 @@ const h5Player = {
     videoCapturer.onFused = () => h5Player.tips(i18n.t('captureFused'))
     /* 跨CORS拉取完成后是否自动保存视频到本地，跟随配置 */
     videoCapturer.autoDownloadCachedVideo = configManager.get('enhance.autoDownloadCachedVideo')
+    /* 跨CORS拉取下载进度：简要显示在 tips */
+    videoCapturer.onProgress = (info) => {
+      h5Player.tips(i18n.t('downloadProgress')
+        .replace('{loaded}', info.loadedText)
+        .replace('{total}', info.totalText)
+        .replace('{percent}', info.percent)
+        .replace('{remaining}', info.remainingText))
+    }
 
     /* 响应来自跨域受限的视频检出事件 */
     monkeyMsg.on('videoDetected', async (name, oldVal, newVal, remote) => {

@@ -116,6 +116,7 @@ export default {
   downloadCachedVideo: 'Download cached video',
   disableDownloadCachedVideo: 'Disable download cached video',
   downloadCachedVideoDesc: 'Automatically save the video to local after a cross-CORS fetch; when enabled and already cached, download it immediately without re-requesting',
+  downloadProgress: 'Downloading {loaded} / {total} ({percent}%), remaining ~{remaining}',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',

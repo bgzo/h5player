@@ -116,6 +116,7 @@ export default {
   downloadCachedVideo: 'Скачать кэшированное видео',
   disableDownloadCachedVideo: 'Отключить скачивание кэшированного видео',
   downloadCachedVideoDesc: 'Автоматически сохранять видео на локальный диск после загрузки через CORS; при включении и наличии кэша скачать сразу, используя кэш без повторного запроса',
+  downloadProgress: 'Загрузка видео {loaded} / {total} ({percent}%), осталось ~{remaining}',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',
