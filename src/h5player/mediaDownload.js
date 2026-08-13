@@ -9,7 +9,10 @@ function download (url, title) {
   downloadEl.href = url
   downloadEl.target = '_blank'
   downloadEl.download = title
+  /* 挂到 DOM 再点击，部分浏览器（如旧版 Firefox）对未挂载的 <a download> 不触发下载；点击后随即移除 */
+  document.body.appendChild(downloadEl)
   downloadEl.click()
+  downloadEl.remove()
 }
 
 function mediaDownload (mediaEl, title, downloadType) {
