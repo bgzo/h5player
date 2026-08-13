@@ -208,6 +208,7 @@ If the website you frequent is not well supported, feel free to raise [issues](h
 - Traffic warning: enabling this feature re-downloads the entire video file, which may consume a large amount of traffic. The same video source is downloaded only once and then cached for reuse.
 - Cache rules: videos larger than 1 GB or whose size cannot be probed are not cached; cached videos are released after 4 hours without a screenshot.
 - Network scope: this feature relies on the `@connect *` userscript grant, which allows the script to make cross-origin requests to video-source domains while it is enabled.
+- Note: the `Referer` and `Range` headers used by the refetch may be silently dropped by some userscript hosts (e.g. Violentmonkey on certain browsers); on such hosts the feature may fail to bypass CORS.
 
 ## Update Log
 
