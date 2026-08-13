@@ -233,7 +233,9 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   /* 熔断：冷却期内同一源不再重试，避免反复重试浪费流量 */
   if (failedSrc.has(srcUrl) && (Date.now() - failedSrc.get(srcUrl)) < RETRY_COOLDOWN) {
     console.warn('[captureViaBlob] fused source, skip until cooldown', srcUrl)
-    throw new CaptureFusedError()
+    const fusedErr = new CaptureFusedError()
+    fusedErr.fused = true
+    throw fusedErr
   }
 
   evictExpiredCache()
@@ -262,6 +264,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 }
 
 var videoCapturer = {
+  /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
+  onFused: null,
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
@@ -347,6 +351,9 @@ var videoCapturer = {
             videoCapturer.download(result.canvas, result.title, video, true, enableCrossOriginCapture, withCredentials)
           })
           .catch(function (err) {
+            if (err && err.fused && typeof videoCapturer.onFused === 'function') {
+              videoCapturer.onFused()
+            }
             console.error('重拉视频源失败，退回预览。', err)
             videoCapturer.previe(canvas, title)
           })

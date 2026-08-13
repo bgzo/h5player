@@ -108,6 +108,7 @@ export default {
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
   crossOriginCapture: 'Включить снятие скриншотов через CORS',
   disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
+  captureFused: 'Снятие скриншота через CORS приостановлено, повторите позже',
   crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
   mouse: {
     enable: 'Включить управление мышью',

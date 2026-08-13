@@ -2704,6 +2704,9 @@ const h5Player = {
       debug.warn('快捷键能力已被禁用')
     }
 
+    /* 跨CORS截图被熔断时给出用户提示 */
+    videoCapturer.onFused = () => h5Player.tips(i18n.t('captureFused'))
+
     /* 响应来自跨域受限的视频检出事件 */
     monkeyMsg.on('videoDetected', async (name, oldVal, newVal, remote) => {
       if (newVal.originTab) {

@@ -111,6 +111,7 @@ export default {
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
   crossOriginCapture: '启用跨CORS截图',
   disableCrossOriginCapture: '禁用跨CORS截图',
+  captureFused: '跨CORS截图已被熔断，请稍后重试',
   crossOriginCaptureDesc: '截图被 CORS 阻断时，重新拉取视频源截图',
   mouse: {
     enable: '启用鼠标控制',

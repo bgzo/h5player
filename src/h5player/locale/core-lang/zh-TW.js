@@ -108,6 +108,7 @@ export default {
   disableAutoGotoBufferedTime: '禁用自動跟隨跳轉到緩衝區時間',
   crossOriginCapture: '啟用跨CORS截圖',
   disableCrossOriginCapture: '禁用跨CORS截圖',
+  captureFused: '跨CORS截圖已被熔斷，請稍後重試',
   crossOriginCaptureDesc: '截圖被 CORS 阻斷時，重新拉取影片來源截圖',
   mouse: {
     enable: '啟用鼠標控制',
