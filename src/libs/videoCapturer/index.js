@@ -272,7 +272,7 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   return { canvas, title }
 }
 
-var videoCapturer = {
+const videoCapturer = {
   /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
   onFused: null,
   /**
