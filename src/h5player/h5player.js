@@ -1450,6 +1450,14 @@ const h5Player = {
     t.tips(enable ? i18n.t('crossOriginCapture') : i18n.t('disableCrossOriginCapture'))
   },
 
+  /* 切换：跨 CORS 重拉视频源时是否携带 Cookie 凭据 */
+  toggleCaptureWithCredentials () {
+    const t = this
+    const enable = !configManager.get('enhance.captureWithCredentials')
+    configManager.setGlobalStorage('enhance.captureWithCredentials', enable)
+    t.tips(enable ? i18n.t('captureWithCredentials') : i18n.t('disableCaptureWithCredentials'))
+  },
+
   /**
    * 切换画中画功能
    */
