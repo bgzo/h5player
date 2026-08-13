@@ -109,6 +109,9 @@ export default {
   crossOriginCapture: '啟用跨CORS截圖',
   disableCrossOriginCapture: '禁用跨CORS截圖',
   captureFused: '跨CORS截圖已被熔斷，請稍後重試',
+  captureWithCredentials: '跨CORS截圖攜帶憑證',
+  disableCaptureWithCredentials: '禁用跨CORS截圖憑證',
+  captureWithCredentialsDesc: '重拉影片來源截圖時是否攜帶 Cookie，公開 CDN 建議關閉',
   crossOriginCaptureDesc: '截圖被 CORS 阻斷時，重新拉取影片來源截圖',
   mouse: {
     enable: '啟用鼠標控制',

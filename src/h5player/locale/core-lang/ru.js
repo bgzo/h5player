@@ -109,6 +109,9 @@ export default {
   crossOriginCapture: 'Включить снятие скриншотов через CORS',
   disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
   captureFused: 'Снятие скриншота через CORS приостановлено, повторите позже',
+  captureWithCredentials: 'Снятие скриншота через CORS с учётными данными',
+  disableCaptureWithCredentials: 'Отключить учётные данные cross-CORS',
+  captureWithCredentialsDesc: 'Отправлять ли cookie при повторной загрузке источника; для публичных CDN рекомендуется выключить',
   crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
   mouse: {
     enable: 'Включить управление мышью',
