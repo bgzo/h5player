@@ -298,7 +298,7 @@ export const menuConfig = [
           {
             title: i18n.t('downloadCachedVideo'),
             desc: i18n.t('downloadCachedVideoDesc'),
-            action: 'downloadCachedVideo'
+            action: 'toggleDownloadCachedVideo'
           }
         ]
       },

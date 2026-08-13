@@ -1458,10 +1458,16 @@ const h5Player = {
     t.tips(enable ? i18n.t('captureWithCredentials') : i18n.t('disableCaptureWithCredentials'))
   },
 
-  /* 下载已载入内存（videoCache）的当前视频源到本地，命中缓存不重新请求 */
-  downloadCachedVideo () {
-    const player = this.player()
-    videoCapturer.downloadVideo(player, configManager.get('enhance.captureWithCredentials'))
+  /* 切换：跨CORS拉取完成后是否自动把视频保存到本地；开启时若当前视频已缓存则立即下载 */
+  toggleDownloadCachedVideo () {
+    const t = this
+    const enable = !configManager.get('enhance.autoDownloadCachedVideo')
+    configManager.setGlobalStorage('enhance.autoDownloadCachedVideo', enable)
+    videoCapturer.autoDownloadCachedVideo = enable
+    if (enable) {
+      videoCapturer.downloadVideo(t.player(), true)
+    }
+    t.tips(enable ? i18n.t('downloadCachedVideo') : i18n.t('disableDownloadCachedVideo'))
   },
 
   /**
@@ -2720,6 +2726,8 @@ const h5Player = {
 
     /* 跨CORS截图被熔断时给出用户提示 */
     videoCapturer.onFused = () => h5Player.tips(i18n.t('captureFused'))
+    /* 跨CORS拉取完成后是否自动保存视频到本地，跟随配置 */
+    videoCapturer.autoDownloadCachedVideo = configManager.get('enhance.autoDownloadCachedVideo')
 
     /* 响应来自跨域受限的视频检出事件 */
     monkeyMsg.on('videoDetected', async (name, oldVal, newVal, remote) => {

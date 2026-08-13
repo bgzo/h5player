@@ -351,6 +351,8 @@ const configManager = new ConfigManager({
       allowCrossOriginCapture: false,
       /* 重拉视频源时是否携带 Cookie 凭据（默认不携带，可通过菜单项 toggleCaptureWithCredentials 切换） */
       captureWithCredentials: false,
+      /* 跨CORS拉取完成后是否自动把视频保存到本地（默认开启，可通过菜单项 toggleDownloadCachedVideo 切换） */
+      autoDownloadCachedVideo: true,
       unfoldMenu: false
     },
     language: 'auto',
