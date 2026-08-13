@@ -31,21 +31,43 @@ function getVideoSourceUrl (video) {
   return src
 }
 
-/* 通过 GM_xmlhttpRequest 拉取跨域视频字节，返回 Blob */
-function fetchVideoBlob (url, withCredentials) {
+/* 最小超时 30s */
+const FETCH_TIMEOUT_MIN = 30000
+/* 时长未知（如直播）时的兜底超时 5 分钟 */
+const FETCH_TIMEOUT_FALLBACK = 300000
+/* 下载失败后的熔断冷却时长：5 分钟内不再重试同一源 */
+const RETRY_COOLDOWN = 5 * 60 * 1000
+
+/* 熔断错误：用于区分"可重试失败"与"被熔断拦截"，捕获后可据此提示用户 */
+class CaptureFusedError extends Error {}
+
+/* 记录最近一次失败的视频源（srcUrl -> 失败时间戳），用于冷却期内的熔断 */
+const failedSrc = new Map()
+
+/* 通过 GM_xmlhttpRequest 拉取跨域视频字节，返回 Blob；超时会真正 abort 请求并 reject */
+function fetchVideoBlob (url, withCredentials, timeoutMs) {
   return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest
     if (typeof gm !== 'function') {
       return reject(new Error('GM_xmlhttpRequest 未注册'))
     }
-    gm({
+    const timer = setTimeout(function () {
+      /* 部分 GM 宿主无 abort()，缺失时仅 reject（仍能靠熔断挡住后续请求） */
+      if (typeof gmRequest.abort === 'function') gmRequest.abort()
+      reject(new Error('Fetch timeout'))
+    }, timeoutMs || FETCH_TIMEOUT_FALLBACK)
+    const gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href },
-      onerror: (err) => reject(err),
+      onerror: (err) => {
+        clearTimeout(timer)
+        reject(err)
+      },
       onload: (res) => {
+        clearTimeout(timer)
         if (res.status >= 400) return reject(new Error('HTTP ' + res.status))
         /* 省略 type，交给浏览器按容器字节嗅探（mp4/webm 均可靠，避免硬编码误判） */
         const blob = new Blob([res.response])
@@ -150,15 +172,17 @@ function getCachedVideo (srcUrl, options) {
 
   const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable }
   if (cacheable) videoCache.set(srcUrl, record)
-  record.promise = fetchVideoBlob(srcUrl, options.withCredentials)
+  record.promise = fetchVideoBlob(srcUrl, options.withCredentials, options.timeoutMs)
     .then(loadVideoFromBlob)
     .then(function (loaded) {
       record.videoEl = loaded.videoEl
       record.objectUrl = loaded.objectUrl
       record.promise = null
+      failedSrc.delete(srcUrl)
       return record
     })
     .catch(function (err) {
+      failedSrc.set(srcUrl, Date.now())
       if (cacheable) videoCache.delete(srcUrl)
       throw err
     })
@@ -189,6 +213,12 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
   if (!/^https?:/i.test(srcUrl)) return null
   if (/\.m3u8($|\?)/i.test(srcUrl)) return null
 
+  /* 熔断：冷却期内同一源不再重试，避免反复重试浪费流量 */
+  if (failedSrc.has(srcUrl) && (Date.now() - failedSrc.get(srcUrl)) < RETRY_COOLDOWN) {
+    console.warn('[captureViaBlob] fused source, skip until cooldown', srcUrl)
+    throw new CaptureFusedError()
+  }
+
   evictExpiredCache()
   evictOtherVideos(srcUrl)
 
@@ -196,7 +226,11 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
   const size = await probeVideoSize(srcUrl, !!enableCrossOriginCapture)
   const cacheable = size > 0 && size <= MAX_CACHE_SIZE
 
-  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable })
+  /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
+  const duration = video.duration
+  const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK)
+
+  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable, timeoutMs })
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl)
   await seekVideo(record.videoEl, video.currentTime || 0)
