@@ -251,7 +251,14 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 
   /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高；
    * 若探测阶段已拿到完整 200 响应体（probedBlob），直接复用，不再发全量下载请求 */
-  const { size, blob: probedBlob } = await probeVideoSize(srcUrl, withCredentials)
+  let probe
+  try {
+    probe = await probeVideoSize(srcUrl, withCredentials)
+  } catch (e) {
+    failedSrc.set(srcUrl, Date.now())
+    throw e
+  }
+  const { size, blob: probedBlob } = probe
   const cacheable = size > 0 && size <= MAX_CACHE_SIZE
 
   /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
