@@ -98,17 +98,25 @@ const CACHE_IDLE_TIMEOUT = 4 * 60 * 60 * 1000
  * 若服务器忽略 Range 返回完整 200，则直接复用响应体作为 blob，避免二次全量下载。
  * 返回 { size, blob }：size 为总大小（无法判断时为 0）；blob 非 null 表示已拿到完整内容。 */
 function probeVideoSize (url, withCredentials) {
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest
     if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
-    gm({
+    const timer = setTimeout(function () {
+      if (typeof gmRequest.abort === 'function') gmRequest.abort()
+      reject(new Error('Probe timeout'))
+    }, FETCH_TIMEOUT_MIN)
+    const gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
-      onerror: () => resolve({ size: 0, blob: null }),
+      onerror: () => {
+        clearTimeout(timer)
+        resolve({ size: 0, blob: null })
+      },
       onload: (res) => {
+        clearTimeout(timer)
         if (res.status >= 400) return resolve({ size: 0, blob: null })
         const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : ''
         const lower = headers.toLowerCase()
