@@ -4311,7 +4311,7 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               action: 'toggleCaptureWithCredentials'
             },
             {
-              title: i18n.t('downloadCachedVideo'),
+              title: `${i18n.t('toggleStates')} ${i18n.t('downloadCachedVideo')}`,
               desc: i18n.t('downloadCachedVideoDesc'),
               action: 'toggleDownloadCachedVideo'
             }
