@@ -170,6 +170,7 @@ function loadVideoFromBlob (blob) {
       resolve({ videoEl: tempVideo, objectUrl })
     }, { once: true })
     tempVideo.addEventListener('error', function () {
+      URL.revokeObjectURL(objectUrl)
       reject(new Error('视频解码失败'))
     }, { once: true })
   })
