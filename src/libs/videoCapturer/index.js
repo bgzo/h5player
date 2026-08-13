@@ -167,18 +167,19 @@ function loadVideoFromBlob (blob) {
   })
 }
 
-/* 获取（或下载并缓存）视频源对应的临时 video；options.cacheable 为 false 时不写入缓存 */
+/* 获取（或下载并缓存）视频源对应的临时 video；统一写入 videoCache 用于并发去重，
+ * record.cacheable 标记是否长期驻留，非缓存记录在使用后通过微任务释放 */
 function getCachedVideo (srcUrl, options) {
   options = options || {}
   const cacheable = !!options.cacheable
-  const cached = cacheable ? videoCache.get(srcUrl) : null
+  const cached = videoCache.get(srcUrl)
   if (cached) {
     cached.lastUsed = Date.now()
     return cached.promise || Promise.resolve(cached)
   }
 
   const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable }
-  if (cacheable) videoCache.set(srcUrl, record)
+  videoCache.set(srcUrl, record)
   record.promise = (options.existingBlob
     ? Promise.resolve(options.existingBlob)
     : fetchVideoBlob(srcUrl, options.withCredentials, options.timeoutMs))
@@ -188,11 +189,18 @@ function getCachedVideo (srcUrl, options) {
       record.objectUrl = loaded.objectUrl
       record.promise = null
       failedSrc.delete(srcUrl)
+      if (!cacheable) {
+        /* 非缓存记录：下个微任务释放 objectUrl 并从缓存移除，避免长期占用内存 */
+        queueMicrotask(function () {
+          if (record.objectUrl) URL.revokeObjectURL(record.objectUrl)
+          videoCache.delete(srcUrl)
+        })
+      }
       return record
     })
     .catch(function (err) {
       failedSrc.set(srcUrl, Date.now())
-      if (cacheable) videoCache.delete(srcUrl)
+      videoCache.delete(srcUrl)
       throw err
     })
   return record.promise
