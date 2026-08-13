@@ -139,7 +139,7 @@ function probeVideoSize (url, withCredentials) {
  * 在途下载（record.promise 仍 pending）的记录不驱逐，避免其完成后 objectUrl/blob 泄漏 */
 function evictOtherVideos (keepUrl) {
   videoCache.forEach(function (record, key) {
-    if (key !== keepUrl && record.promise === null && record.objectUrl) {
+    if (key !== keepUrl && record.promise === null && record.objectUrl && !record.inUse) {
       URL.revokeObjectURL(record.objectUrl)
       videoCache.delete(key)
     }
@@ -191,7 +191,7 @@ function getCachedVideo (srcUrl, options) {
     return cached.promise || Promise.resolve(cached)
   }
 
-  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable }
+  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0 }
   videoCache.set(srcUrl, record)
   record.promise = (options.existingBlob
     ? Promise.resolve(options.existingBlob)
@@ -266,9 +266,15 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob })
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl)
-  await seekVideo(record.videoEl, video.currentTime || 0)
-  const canvas = drawVideoToCanvas(record.videoEl)
-  return { canvas, title }
+  /* 绘制期间自增 inUse，阻止其它 URL 的并发截图驱逐本记录 objectUrl，绘制完成后再放行 */
+  record.inUse = (record.inUse || 0) + 1
+  try {
+    await seekVideo(record.videoEl, video.currentTime || 0)
+    const canvas = drawVideoToCanvas(record.videoEl)
+    return { canvas, title }
+  } finally {
+    record.inUse = Math.max(0, (record.inUse || 0) - 1)
+  }
 }
 
 const videoCapturer = {
