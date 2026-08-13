@@ -113,6 +113,8 @@ export default {
   disableCaptureWithCredentials: 'Отключить учётные данные cross-CORS',
   captureWithCredentialsDesc: 'Отправлять ли cookie при повторной загрузке источника; для публичных CDN рекомендуется выключить',
   crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
+  downloadCachedVideo: 'Скачать кэшированное видео',
+  downloadCachedVideoDesc: 'Скачать уже загруженный в память источник видео на локальный диск; использует кэш без повторного запроса',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',

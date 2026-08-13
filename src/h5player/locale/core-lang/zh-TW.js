@@ -113,6 +113,8 @@ export default {
   disableCaptureWithCredentials: '禁用跨CORS截圖憑證',
   captureWithCredentialsDesc: '重拉影片來源截圖時是否攜帶 Cookie，公開 CDN 建議關閉',
   crossOriginCaptureDesc: '截圖被 CORS 阻斷時，重新拉取影片來源截圖',
+  downloadCachedVideo: '下載已緩存影片',
+  downloadCachedVideoDesc: '把已載入記憶體的影片來源直接下載到本地，命中緩存時不重新請求',
   mouse: {
     enable: '啟用鼠標控制',
     disable: '禁用鼠標控制',

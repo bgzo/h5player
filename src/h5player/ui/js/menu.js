@@ -294,6 +294,11 @@ export const menuConfig = [
             title: `${i18n.t('toggleStates')} ${i18n.t('captureWithCredentials')}`,
             desc: i18n.t('captureWithCredentialsDesc'),
             action: 'toggleCaptureWithCredentials'
+          },
+          {
+            title: i18n.t('downloadCachedVideo'),
+            desc: i18n.t('downloadCachedVideoDesc'),
+            action: 'downloadCachedVideo'
           }
         ]
       },

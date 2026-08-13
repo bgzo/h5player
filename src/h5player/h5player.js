@@ -1458,6 +1458,12 @@ const h5Player = {
     t.tips(enable ? i18n.t('captureWithCredentials') : i18n.t('disableCaptureWithCredentials'))
   },
 
+  /* 下载已载入内存（videoCache）的当前视频源到本地，命中缓存不重新请求 */
+  downloadCachedVideo () {
+    const player = this.player()
+    videoCapturer.downloadVideo(player, configManager.get('enhance.captureWithCredentials'))
+  },
+
   /**
    * 切换画中画功能
    */
