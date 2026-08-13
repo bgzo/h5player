@@ -101,22 +101,42 @@ function probeVideoSize (url, withCredentials) {
   return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest
     if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
-    const timer = setTimeout(function () {
-      if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort()
-      reject(new Error('Probe timeout'))
-    }, FETCH_TIMEOUT_MIN)
-    const gmRequest = gm({
+    let gmRequest = null
+    let timer = null
+    const clearTimer = function () { if (timer) clearTimeout(timer) }
+    const armTimer = function (ms) {
+      clearTimer()
+      timer = setTimeout(function () {
+        if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort()
+        reject(new Error('Probe timeout'))
+      }, ms)
+    }
+    armTimer(FETCH_TIMEOUT_MIN)
+    gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
+      onreadystatechange: function () {
+        /* 服务器忽略 Range 返回完整 200 时，按 Content-Length 估算耗时并放宽超时，
+         * 避免慢大文件在下载中途被 30s 超时 abort 后又要重下一次全量 GET */
+        if (gmRequest && gmRequest.readyState >= 2 && gmRequest.status === 200) {
+          const hdrs = typeof gmRequest.responseHeaders === 'string' ? gmRequest.responseHeaders : ''
+          const lm = hdrs.toLowerCase().match(/content-length:\s*(\d+)/)
+          if (lm) {
+            const size = parseInt(lm[1], 10)
+            const estMs = Math.max(FETCH_TIMEOUT_MIN, Math.min(Math.ceil(size / (100 * 1024)) * 1000, FETCH_TIMEOUT_FALLBACK))
+            armTimer(estMs)
+          }
+        }
+      },
       onerror: () => {
-        clearTimeout(timer)
+        clearTimer()
         resolve({ size: 0, blob: null })
       },
       onload: (res) => {
-        clearTimeout(timer)
+        clearTimer()
         if (res.status >= 400) return resolve({ size: 0, blob: null })
         const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : ''
         const lower = headers.toLowerCase()
