@@ -3489,8 +3489,8 @@ function fetchVideoBlob (url, withCredentials, timeoutMs) {
       return reject(new Error('GM_xmlhttpRequest 未注册'))
     }
     const timer = setTimeout(function () {
-      /* 部分 GM 宿主无 abort()，缺失时仅 reject（仍能靠熔断挡住后续请求） */
-      if (typeof gmRequest.abort === 'function') gmRequest.abort();
+      /* 部分 GM 宿主无 abort() 或 gm() 返回 undefined，缺失时仅 reject（仍能靠熔断挡住后续请求） */
+      if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort();
       reject(new Error('Fetch timeout'));
     }, timeoutMs || FETCH_TIMEOUT_FALLBACK);
     const gmRequest = gm({
@@ -3538,22 +3538,42 @@ function probeVideoSize (url, withCredentials) {
   return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest;
     if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
-    const timer = setTimeout(function () {
-      if (typeof gmRequest.abort === 'function') gmRequest.abort();
-      reject(new Error('Probe timeout'));
-    }, FETCH_TIMEOUT_MIN);
-    const gmRequest = gm({
+    let gmRequest = null;
+    let timer = null;
+    const clearTimer = function () { if (timer) clearTimeout(timer); };
+    const armTimer = function (ms) {
+      clearTimer();
+      timer = setTimeout(function () {
+        if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort();
+        reject(new Error('Probe timeout'));
+      }, ms);
+    };
+    armTimer(FETCH_TIMEOUT_MIN);
+    gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
+      onreadystatechange: function () {
+        /* 服务器忽略 Range 返回完整 200 时，按 Content-Length 估算耗时并放宽超时，
+         * 避免慢大文件在下载中途被 30s 超时 abort 后又要重下一次全量 GET */
+        if (gmRequest && gmRequest.readyState >= 2 && gmRequest.status === 200) {
+          const hdrs = typeof gmRequest.responseHeaders === 'string' ? gmRequest.responseHeaders : '';
+          const lm = hdrs.toLowerCase().match(/content-length:\s*(\d+)/);
+          if (lm) {
+            const size = parseInt(lm[1], 10);
+            const estMs = Math.max(FETCH_TIMEOUT_MIN, Math.min(Math.ceil(size / (100 * 1024)) * 1000, FETCH_TIMEOUT_FALLBACK));
+            armTimer(estMs);
+          }
+        }
+      },
       onerror: () => {
-        clearTimeout(timer);
+        clearTimer();
         resolve({ size: 0, blob: null });
       },
       onload: (res) => {
-        clearTimeout(timer);
+        clearTimer();
         if (res.status >= 400) return resolve({ size: 0, blob: null })
         const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : '';
         const lower = headers.toLowerCase();
@@ -3576,7 +3596,7 @@ function probeVideoSize (url, withCredentials) {
  * 在途下载（record.promise 仍 pending）的记录不驱逐，避免其完成后 objectUrl/blob 泄漏 */
 function evictOtherVideos (keepUrl) {
   videoCache.forEach(function (record, key) {
-    if (key !== keepUrl && record.promise === null && record.objectUrl) {
+    if (key !== keepUrl && record.promise === null && record.objectUrl && !record.inUse) {
       URL.revokeObjectURL(record.objectUrl);
       videoCache.delete(key);
     }
@@ -3628,7 +3648,7 @@ function getCachedVideo (srcUrl, options) {
     return cached.promise || Promise.resolve(cached)
   }
 
-  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable };
+  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0 };
   videoCache.set(srcUrl, record);
   record.promise = (options.existingBlob
     ? Promise.resolve(options.existingBlob)
@@ -3689,9 +3709,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const cached = videoCache.get(srcUrl);
   let probedBlob = null;
   let cacheable = false;
-  if (cached) {
-    cacheable = cached.cacheable;
-  } else {
+  /* cacheable 仅未命中时生效：getCachedVideo 命中分支早返回并忽略 options.cacheable */
+  if (!cached) {
     const probe = await probeVideoSize(srcUrl, withCredentials);
     probedBlob = probe.blob;
     cacheable = probe.size > 0 && probe.size <= MAX_CACHE_SIZE;
@@ -3704,12 +3723,18 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob });
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl);
-  await seekVideo(record.videoEl, video.currentTime || 0);
-  const canvas = drawVideoToCanvas(record.videoEl);
-  return { canvas, title }
+  /* 绘制期间自增 inUse，阻止其它 URL 的并发截图驱逐本记录 objectUrl，绘制完成后再放行 */
+  record.inUse = (record.inUse || 0) + 1;
+  try {
+    await seekVideo(record.videoEl, video.currentTime || 0);
+    const canvas = drawVideoToCanvas(record.videoEl);
+    return { canvas, title }
+  } finally {
+    record.inUse = Math.max(0, (record.inUse || 0) - 1);
+  }
 }
 
-var videoCapturer = {
+const videoCapturer = {
   /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
   onFused: null,
   /**
