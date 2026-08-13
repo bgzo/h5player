@@ -182,16 +182,13 @@ function probeVideoSize (url, withCredentials) {
       }, ms)
     }
     armTimer(FETCH_TIMEOUT_MIN)
-    const logProgress = createProgressLogger(url)
     gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
-      onprogress: (ev) => {
-        if (ev && typeof ev.loaded === 'number') logProgress(ev.loaded, ev.total || 0)
-      },
+      /* 探测为 Range: bytes=0-0 的单字节请求，不挂 onprogress，避免误报"下载进度"提示 */
       onreadystatechange: function () {
         /* 服务器忽略 Range 返回完整 200 时，按 Content-Length 估算耗时并放宽超时，
          * 避免慢大文件在下载中途被 30s 超时 abort 后又要重下一次全量 GET */
