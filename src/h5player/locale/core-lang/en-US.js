@@ -106,6 +106,13 @@ export default {
   ffmpegScript: 'Audio and video merge/convert script',
   autoGotoBufferedTime: 'Automatically jump to the buffered time',
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
+  crossOriginCapture: 'Enable cross-CORS capture',
+  disableCrossOriginCapture: 'Disable cross-CORS capture',
+  captureFused: 'Cross-CORS capture is fused, please retry later',
+  captureWithCredentials: 'Cross-CORS capture with credentials',
+  disableCaptureWithCredentials: 'Disable cross-CORS capture credentials',
+  captureWithCredentialsDesc: 'Whether to send cookies when refetching the video source; off is recommended for public CDNs',
+  crossOriginCaptureDesc: 'Refetch the video source for the screenshot when it is blocked by CORS',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',

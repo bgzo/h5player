@@ -4299,6 +4299,16 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('comingSoon'),
               desc: i18n.t('comingSoon')
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('crossOriginCapture')}`,
+              desc: i18n.t('crossOriginCaptureDesc'),
+              action: 'toggleCrossOriginCapture'
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('captureWithCredentials')}`,
+              desc: i18n.t('captureWithCredentialsDesc'),
+              action: 'toggleCaptureWithCredentials'
             }
           ]
         },

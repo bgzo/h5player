@@ -106,6 +106,13 @@ export default {
   ffmpegScript: 'Скрипт слияния/преобразования аудио и видео',
   autoGotoBufferedTime: 'Автоматически перейти к времени буфера',
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
+  crossOriginCapture: 'Включить снятие скриншотов через CORS',
+  disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
+  captureFused: 'Снятие скриншота через CORS приостановлено, повторите позже',
+  captureWithCredentials: 'Снятие скриншота через CORS с учётными данными',
+  disableCaptureWithCredentials: 'Отключить учётные данные cross-CORS',
+  captureWithCredentialsDesc: 'Отправлять ли cookie при повторной загрузке источника; для публичных CDN рекомендуется выключить',
+  crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',

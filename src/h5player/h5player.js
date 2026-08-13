@@ -1442,6 +1442,22 @@ const h5Player = {
     t.tips(t.autoGotoBufferedTime ? i18n.t('autoGotoBufferedTime') : i18n.t('disableAutoGotoBufferedTime'))
   },
 
+  /* 切换：截图被CORS污染时，是否重拉视频源绕开限制下载 */
+  toggleCrossOriginCapture () {
+    const t = this
+    const enable = !configManager.get('enhance.allowCrossOriginCapture')
+    configManager.setGlobalStorage('enhance.allowCrossOriginCapture', enable)
+    t.tips(enable ? i18n.t('crossOriginCapture') : i18n.t('disableCrossOriginCapture'))
+  },
+
+  /* 切换：跨 CORS 重拉视频源时是否携带 Cookie 凭据 */
+  toggleCaptureWithCredentials () {
+    const t = this
+    const enable = !configManager.get('enhance.captureWithCredentials')
+    configManager.setGlobalStorage('enhance.captureWithCredentials', enable)
+    t.tips(enable ? i18n.t('captureWithCredentials') : i18n.t('disableCaptureWithCredentials'))
+  },
+
   /**
    * 切换画中画功能
    */
@@ -1917,7 +1933,7 @@ const h5Player = {
 
   capture () {
     const player = this.player()
-    videoCapturer.capture(player, true)
+    videoCapturer.capture(player, true, undefined, configManager.get('enhance.allowCrossOriginCapture'), configManager.get('enhance.captureWithCredentials'))
 
     /* 暂停画面 */
     if (!player.paused && !document.pictureInPictureElement && document.visibilityState !== 'visible') {
@@ -2695,6 +2711,9 @@ const h5Player = {
     } else {
       debug.warn('快捷键能力已被禁用')
     }
+
+    /* 跨CORS截图被熔断时给出用户提示 */
+    videoCapturer.onFused = () => h5Player.tips(i18n.t('captureFused'))
 
     /* 响应来自跨域受限的视频检出事件 */
     monkeyMsg.on('videoDetected', async (name, oldVal, newVal, remote) => {

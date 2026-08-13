@@ -200,6 +200,17 @@ If the website you frequent is not well supported, feel free to raise [issues](h
 - 1. This script is developed and maintained in my spare time. Feedback is welcome, but any negative reviews are not accepted.
 - 2. If you find that the script is completely unusable, it's generally not a problem with the script itself. You are advised to try reinstalling the plugin.
 
+### Cross-CORS capture
+
+- Location: `More Actions` menu → `Enable/Disable Cross-CORS Capture` (off by default).
+- Behavior: when a screenshot fails because the video source blocks CORS export, the script refetches the video source, redraws the frame onto a clean canvas, and downloads it.
+- Scope: only works for direct video files (mp4/webm). HLS / MSE / DASH sources (`.m3u8`) are not supported.
+- Traffic warning: enabling this feature re-downloads the entire video file, which may consume a large amount of traffic. The same video source is downloaded only once and then cached for reuse.
+- Cache rules: videos larger than 1 GB or whose size cannot be probed are not cached; cached videos are released after 4 hours without a screenshot.
+- Network scope: this feature relies on the `@connect *` userscript grant, which allows the script to make cross-origin requests to video-source domains while it is enabled.
+- Note: the `Referer` and `Range` headers used by the refetch may be silently dropped by some userscript hosts (e.g. Violentmonkey on certain browsers); on such hosts the feature may fail to bypass CORS.
+- Credentials: the refetch sends cookies only when "Capture with credentials" is enabled (off by default). Public CDNs that reject credentialed requests should keep this off; sites that gate video behind login may need to turn it on via the menu.
+
 ## Update Log
 
 - [H5player ChangeLog](https://github.com/xxxily/h5player/blob/master/changeLog.md)

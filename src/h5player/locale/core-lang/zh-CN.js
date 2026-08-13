@@ -109,6 +109,13 @@ export default {
   ffmpegScript: '音视频合并/转换脚本',
   autoGotoBufferedTime: '自动跟随跳转到缓冲区时间',
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
+  crossOriginCapture: '启用跨CORS截图',
+  disableCrossOriginCapture: '禁用跨CORS截图',
+  captureFused: '跨CORS截图已被熔断，请稍后重试',
+  captureWithCredentials: '跨CORS截图携带凭据',
+  disableCaptureWithCredentials: '禁用跨CORS截图凭据',
+  captureWithCredentialsDesc: '重拉视频源截图时是否携带 Cookie，公开 CDN 建议关闭',
+  crossOriginCaptureDesc: '截图被 CORS 阻断时，重新拉取视频源截图',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',
