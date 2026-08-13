@@ -383,8 +383,8 @@ const videoCapturer = {
   onFused: null,
   /* 下载进度钩子：由宿主注入，接收 { loadedText, totalText, percent, remainingText } */
   onProgress: null,
-  /* 跨CORS拉取完成后是否自动把视频保存到本地（由宿主根据配置注入，默认开启） */
-  autoDownloadCachedVideo: true,
+  /* 跨CORS拉取完成后是否自动把视频保存到本地（由宿主根据配置注入，默认关闭，避免截图意外下载整个视频） */
+  autoDownloadCachedVideo: false,
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
