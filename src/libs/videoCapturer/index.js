@@ -356,4 +356,16 @@ var videoCapturer = {
   }
 }
 
+/* 页面卸载时释放所有缓存：revoke objectURL、清空临时 video 解码、清空缓存 */
+window.addEventListener('pagehide', function () {
+  videoCache.forEach(function (record) {
+    if (record.objectUrl) URL.revokeObjectURL(record.objectUrl)
+    if (record.videoEl) {
+      record.videoEl.src = ''
+      record.videoEl.load()
+    }
+  })
+  videoCache.clear()
+}, { once: true })
+
 export default videoCapturer
