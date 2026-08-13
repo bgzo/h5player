@@ -120,13 +120,23 @@ function drawVideoToCanvas (video) {
   return canvas
 }
 
-/* 从视频源 URL 中提取可读文件名，提取不到时退回带时间戳的默认名 */
-function getDownloadFileName (url) {
-  try {
-    const base = new URL(url).pathname.split('/').pop()
-    if (base) return decodeURIComponent(base)
-  } catch (e) {}
-  return 'video_' + Date.now() + '.mp4'
+/* 从 blob 类型推断扩展名，推断不出时退回 mp4 */
+function getVideoExt (blob) {
+  const m = blob && blob.type ? blob.type.split('/')[1] : ''
+  if (m && m !== 'octet-stream') return '.' + m
+  return '.mp4'
+}
+
+function pad2 (n) { return n < 10 ? '0' + n : '' + n }
+
+/* 文件名：优先使用页面标题（与截图命名规则一致，参考 "${document.title}_${currentTime}"），
+ * 追加可读时间戳避免冲突，扩展名取自 blob 类型 */
+function getDownloadFileName (url, blob) {
+  const title = (document.title || '').trim()
+  const d = new Date()
+  const ts = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`
+  const base = title || 'video_' + Date.now()
+  return `${base}_${ts}${getVideoExt(blob)}`
 }
 
 /* 触发浏览器下载：把 blob 写成 objectUrl 后模拟点击 <a download>，稍后 revoke */
@@ -134,7 +144,7 @@ function saveBlobToLocal (blob, url) {
   const objectUrl = URL.createObjectURL(blob)
   const el = document.createElement('a')
   el.href = objectUrl
-  el.download = getDownloadFileName(url)
+  el.download = getDownloadFileName(url, blob)
   el.click()
   /* 延迟 revoke，确保浏览器已接管下载 */
   setTimeout(function () { URL.revokeObjectURL(objectUrl) }, 1000)
@@ -352,6 +362,10 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   try {
     await seekVideo(record.videoEl, video.currentTime || 0)
     const canvas = drawVideoToCanvas(record.videoEl)
+    /* 自动保存：开启 autoDownloadCachedVideo 时，跨CORS拉取完成后直接把视频保存到本地 */
+    if (videoCapturer.autoDownloadCachedVideo && record.blob) {
+      saveBlobToLocal(record.blob, srcUrl)
+    }
     return { canvas, title }
   } finally {
     record.inUse = Math.max(0, (record.inUse || 0) - 1)
@@ -361,6 +375,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 const videoCapturer = {
   /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
   onFused: null,
+  /* 跨CORS拉取完成后是否自动把视频保存到本地（由宿主根据配置注入，默认开启） */
+  autoDownloadCachedVideo: true,
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
@@ -458,29 +474,27 @@ const videoCapturer = {
     }
   },
   /**
-   * 把已载入内存（videoCache）的视频源直接下载到本地：命中缓存直接复用 blob（不重新请求），未命中则拉取一次
+   * 把已载入内存（videoCache）的视频源下载到本地，命中缓存直接复用 blob（不重新请求）。
    * @param video {dom} -必选 video dom 标签
-   * @param withCredentials {boolean} -拉取时是否携带 Cookie 凭据
-   * @returns {boolean}
+   * @param onlyIfCached {boolean} -为 true 时仅在已缓存（已 fetch）的情况下下载，未缓存则不拉取
+   * @returns {boolean} 是否成功触发（仅判断缓存命中与否，异步下载结果见控制台）
    */
-  downloadVideo (video, withCredentials) {
+  downloadVideo (video, onlyIfCached) {
     const srcUrl = getVideoSourceUrl(video)
     if (!srcUrl) return false
     if (!/^https?:/i.test(srcUrl)) return false
     if (/\.m3u8($|\?)/i.test(srcUrl)) return false
 
-    const done = function (blob) {
-      if (blob) saveBlobToLocal(blob, srcUrl)
-      else console.warn('[videoCapturer] 无可下载的视频数据。', srcUrl)
-    }
     const cached = videoCache.get(srcUrl)
     if (cached && cached.blob) {
-      done(cached.blob)
+      saveBlobToLocal(cached.blob, srcUrl)
       return true
     }
-    /* 命中在途记录会 await 其下载完成，未命中则新拉一次；下载完成后都写入 record.blob */
-    getCachedVideo(srcUrl, { withCredentials, cacheable: true, timeoutMs: FETCH_TIMEOUT_FALLBACK })
-      .then(function (record) { done(record.blob) })
+    if (onlyIfCached) return false
+    getCachedVideo(srcUrl, { withCredentials: false, cacheable: true, timeoutMs: FETCH_TIMEOUT_FALLBACK })
+      .then(function (record) {
+        if (record.blob) saveBlobToLocal(record.blob, srcUrl)
+      })
       .catch(function (err) {
         console.error('[videoCapturer] 下载视频失败。', err)
       })
