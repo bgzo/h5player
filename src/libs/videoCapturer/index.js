@@ -94,27 +94,34 @@ const MAX_CACHE_SIZE = 1024 * 1024 * 1024
 /* 超过 4 小时没有再次截图，自动释放缓存 */
 const CACHE_IDLE_TIMEOUT = 4 * 60 * 60 * 1000
 
-/* 全量下载前探测视频大小：发 Range: bytes=0-0 请求，从 content-range 读取总大小；无法判断时返回 0 */
+/* 全量下载前探测视频大小：发 Range: bytes=0-0 请求，从 content-range 读取总大小；
+ * 若服务器忽略 Range 返回完整 200，则直接复用响应体作为 blob，避免二次全量下载。
+ * 返回 { size, blob }：size 为总大小（无法判断时为 0）；blob 非 null 表示已拿到完整内容。 */
 function probeVideoSize (url, withCredentials) {
   return new Promise(function (resolve) {
     const gm = window.GM_xmlhttpRequest
-    if (typeof gm !== 'function') return resolve(0)
+    if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
     gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
-      onerror: () => resolve(0),
+      onerror: () => resolve({ size: 0, blob: null }),
       onload: (res) => {
-        if (res.status >= 400) return resolve(0)
+        if (res.status >= 400) return resolve({ size: 0, blob: null })
         const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : ''
         const lower = headers.toLowerCase()
         const rangeMatch = lower.match(/content-range:\s*bytes\s+0-0\/(\d+)/)
-        if (rangeMatch) return resolve(parseInt(rangeMatch[1], 10))
+        if (rangeMatch) return resolve({ size: parseInt(rangeMatch[1], 10), blob: null })
+        if (res.status === 200) {
+          /* 服务器忽略 Range 返回完整响应：复用该响应体，不再发全量下载请求 */
+          const blob = new Blob([res.response])
+          return resolve({ size: blob.size, blob })
+        }
         const lengthMatch = lower.match(/content-length:\s*(\d+)/)
-        if (lengthMatch) return resolve(parseInt(lengthMatch[1], 10))
-        resolve(0)
+        if (lengthMatch) return resolve({ size: parseInt(lengthMatch[1], 10), blob: null })
+        resolve({ size: 0, blob: null })
       }
     })
   })
@@ -172,7 +179,9 @@ function getCachedVideo (srcUrl, options) {
 
   const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable }
   if (cacheable) videoCache.set(srcUrl, record)
-  record.promise = fetchVideoBlob(srcUrl, options.withCredentials, options.timeoutMs)
+  record.promise = (options.existingBlob
+    ? Promise.resolve(options.existingBlob)
+    : fetchVideoBlob(srcUrl, options.withCredentials, options.timeoutMs))
     .then(loadVideoFromBlob)
     .then(function (loaded) {
       record.videoEl = loaded.videoEl
@@ -222,15 +231,16 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
   evictExpiredCache()
   evictOtherVideos(srcUrl)
 
-  /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高 */
-  const size = await probeVideoSize(srcUrl, !!enableCrossOriginCapture)
+  /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高；
+   * 若探测阶段已拿到完整 200 响应体（probedBlob），直接复用，不再发全量下载请求 */
+  const { size, blob: probedBlob } = await probeVideoSize(srcUrl, !!enableCrossOriginCapture)
   const cacheable = size > 0 && size <= MAX_CACHE_SIZE
 
   /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
   const duration = video.duration
   const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK)
 
-  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable, timeoutMs })
+  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable, timeoutMs, existingBlob: probedBlob })
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl)
   await seekVideo(record.videoEl, video.currentTime || 0)
