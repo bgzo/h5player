@@ -3494,7 +3494,8 @@ function formatBytes (bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i]
 }
 
-/* 创建单次下载的进度记录器（闭包隔离并发下载），由 GM 的 onprogress 回调调用 */
+/* 创建单次下载的进度记录器（闭包隔离并发下载），由 GM 的 onprogress 回调调用；
+ * 每 PROGRESS_LOG_INTERVAL 打印一次 console 进度，并触发 videoCapturer.onProgress 供宿主提示 */
 function createProgressLogger (url) {
   let last = { loaded: 0, time: Date.now() };
   return function (loaded, total) {
@@ -3508,7 +3509,12 @@ function createProgressLogger (url) {
     if (speed > 0 && total > 0 && loaded < total) {
       remainText = Math.ceil((total - loaded) / speed / 1000) + 's';
     }
-    console.info(`[videoCapturer] 下载进度 ${formatBytes(loaded)} / ${formatBytes(total)} (${percent}%)，预计还需 ${remainText}`, url);
+    const loadedText = formatBytes(loaded);
+    const totalText = formatBytes(total);
+    console.info(`[videoCapturer] 下载进度 ${loadedText} / ${totalText} (${percent}%)，预计还需 ${remainText}`, url);
+    if (typeof videoCapturer.onProgress === 'function') {
+      videoCapturer.onProgress({ loadedText, totalText, percent, remainingText: remainText });
+    }
     last = { loaded, time: now };
   }
 }
@@ -3814,6 +3820,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 const videoCapturer = {
   /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
   onFused: null,
+  /* 下载进度钩子：由宿主注入，接收 { loadedText, totalText, percent, remainingText } */
+  onProgress: null,
   /* 跨CORS拉取完成后是否自动把视频保存到本地（由宿主根据配置注入，默认开启） */
   autoDownloadCachedVideo: true,
   /**
@@ -4311,6 +4319,7 @@ var zhCN = {
   downloadCachedVideo: '下载已缓存视频',
   disableDownloadCachedVideo: '关闭下载已缓存视频',
   downloadCachedVideoDesc: '跨CORS拉取完成后自动把视频保存到本地；开启时若已缓存则立即下载，命中缓存不重新请求',
+  downloadProgress: '视频下载中 {loaded} / {total}（{percent}%），预计还需 {remaining}',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',
@@ -4470,6 +4479,7 @@ var enUS = {
   downloadCachedVideo: 'Download cached video',
   disableDownloadCachedVideo: 'Disable download cached video',
   downloadCachedVideoDesc: 'Automatically save the video to local after a cross-CORS fetch; when enabled and already cached, download it immediately without re-requesting',
+  downloadProgress: 'Downloading {loaded} / {total} ({percent}%), remaining ~{remaining}',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',
@@ -4627,6 +4637,7 @@ var ru = {
   downloadCachedVideo: 'Скачать кэшированное видео',
   disableDownloadCachedVideo: 'Отключить скачивание кэшированного видео',
   downloadCachedVideoDesc: 'Автоматически сохранять видео на локальный диск после загрузки через CORS; при включении и наличии кэша скачать сразу, используя кэш без повторного запроса',
+  downloadProgress: 'Загрузка видео {loaded} / {total} ({percent}%), осталось ~{remaining}',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',
@@ -4783,6 +4794,7 @@ var zhTW = {
   downloadCachedVideo: '下載已緩存影片',
   disableDownloadCachedVideo: '關閉下載已緩存影片',
   downloadCachedVideoDesc: '跨CORS拉取完成後自動把影片保存到本地；開啟時若已緩存則立即下載，命中緩存不重新請求',
+  downloadProgress: '影片下載中 {loaded} / {total}（{percent}%），預計還需 {remaining}',
   mouse: {
     enable: '啟用鼠標控制',
     disable: '禁用鼠標控制',
@@ -15486,6 +15498,14 @@ const h5Player = {
     videoCapturer.onFused = () => h5Player.tips(i18n.t('captureFused'));
     /* 跨CORS拉取完成后是否自动保存视频到本地，跟随配置 */
     videoCapturer.autoDownloadCachedVideo = configManager.get('enhance.autoDownloadCachedVideo');
+    /* 跨CORS拉取下载进度：简要显示在 tips */
+    videoCapturer.onProgress = (info) => {
+      h5Player.tips(i18n.t('downloadProgress')
+        .replace('{loaded}', info.loadedText)
+        .replace('{total}', info.totalText)
+        .replace('{percent}', info.percent)
+        .replace('{remaining}', info.remainingText));
+    };
 
     /* 响应来自跨域受限的视频检出事件 */
     monkeyMsg.on('videoDetected', async (name, oldVal, newVal, remote) => {
