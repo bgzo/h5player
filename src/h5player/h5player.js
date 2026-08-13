@@ -1465,7 +1465,7 @@ const h5Player = {
     configManager.setGlobalStorage('enhance.autoDownloadCachedVideo', enable)
     videoCapturer.autoDownloadCachedVideo = enable
     if (enable) {
-      videoCapturer.downloadVideo(t.player(), true)
+      videoCapturer.downloadVideo(t.player(), true, configManager.get('enhance.captureWithCredentials'))
     }
     t.tips(enable ? i18n.t('downloadCachedVideo') : i18n.t('disableDownloadCachedVideo'))
   },
