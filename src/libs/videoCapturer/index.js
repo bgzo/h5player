@@ -252,9 +252,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const cached = videoCache.get(srcUrl)
   let probedBlob = null
   let cacheable = false
-  if (cached) {
-    cacheable = cached.cacheable
-  } else {
+  /* cacheable 仅未命中时生效：getCachedVideo 命中分支早返回并忽略 options.cacheable */
+  if (!cached) {
     const probe = await probeVideoSize(srcUrl, withCredentials)
     probedBlob = probe.blob
     cacheable = probe.size > 0 && probe.size <= MAX_CACHE_SIZE
