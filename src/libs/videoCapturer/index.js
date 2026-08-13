@@ -222,7 +222,7 @@ function seekVideo (videoEl, targetTime) {
 }
 
 /* 方案2：重拉视频源为 blob 后，重新绘制一次，绕开 CORS 污染；同一视频源只下载一次 */
-async function captureViaBlob (video, title, enableCrossOriginCapture) {
+async function captureViaBlob (video, title, enableCrossOriginCapture, withCredentials) {
   const srcUrl = getVideoSourceUrl(video)
   /* HLS/MSE/DASH 等非直链源无法通过重拉 blob 绕过 CORS（m3u8 为播放列表文本，
    * 拉回后无法解码），且重拉会造成无谓的全量下载与解码报错，故直接短路退回预览 */
@@ -241,14 +241,14 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
 
   /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高；
    * 若探测阶段已拿到完整 200 响应体（probedBlob），直接复用，不再发全量下载请求 */
-  const { size, blob: probedBlob } = await probeVideoSize(srcUrl, !!enableCrossOriginCapture)
+  const { size, blob: probedBlob } = await probeVideoSize(srcUrl, withCredentials)
   const cacheable = size > 0 && size <= MAX_CACHE_SIZE
 
   /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
   const duration = video.duration
   const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK)
 
-  const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable, timeoutMs, existingBlob: probedBlob })
+  const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob })
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl)
   await seekVideo(record.videoEl, video.currentTime || 0)
@@ -268,9 +268,10 @@ var videoCapturer = {
    * @param download {boolean} -是否下载截图
    * @param title {string} -截图标题
    * @param enableCrossOriginCapture {boolean} -canvas被CORS污染时，是否重拉视频源绕开限制下载
+   * @param withCredentials {boolean} -重拉视频源时是否携带 Cookie 凭据
    * @returns {boolean}
    */
-  capture (video, download, title, enableCrossOriginCapture) {
+  capture (video, download, title, enableCrossOriginCapture, withCredentials) {
     if (!video) return false
     const t = this
     const currentTime = `${Math.floor(video.currentTime / 60)}'${(video.currentTime % 60).toFixed(3)}''`
@@ -287,7 +288,7 @@ var videoCapturer = {
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     if (download) {
-      t.download(canvas, captureTitle, video, false, enableCrossOriginCapture)
+      t.download(canvas, captureTitle, video, false, enableCrossOriginCapture, withCredentials)
     } else {
       t.previe(canvas, captureTitle)
     }
@@ -310,7 +311,7 @@ var videoCapturer = {
    * canvas 下载截取到的内容
    * @param canvas
    */
-  download (canvas, title, video, noFallback, enableCrossOriginCapture) {
+  download (canvas, title, video, noFallback, enableCrossOriginCapture, withCredentials) {
     title = title || 'videoCapturer_' + Date.now()
 
     try {
@@ -340,10 +341,10 @@ var videoCapturer = {
 
       // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览（需在设置中开启）
       if (enableCrossOriginCapture && !noFallback) {
-        captureViaBlob(video, title, enableCrossOriginCapture)
+        captureViaBlob(video, title, enableCrossOriginCapture, withCredentials)
           .then(function (result) {
             if (!result) return videoCapturer.previe(canvas, title)
-            videoCapturer.download(result.canvas, result.title, video, true, enableCrossOriginCapture)
+            videoCapturer.download(result.canvas, result.title, video, true, enableCrossOriginCapture, withCredentials)
           })
           .catch(function (err) {
             console.error('重拉视频源失败，退回预览。', err)

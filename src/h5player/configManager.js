@@ -349,6 +349,8 @@ const configManager = new ConfigManager({
       allowCrossOriginControl: true,
       /* 截图被 CORS 污染时，是否重拉视频源绕开限制下载（默认关闭，开启后同一视频源只下载一次并缓存） */
       allowCrossOriginCapture: false,
+      /* 重拉视频源时是否携带 Cookie 凭据（默认携带，不暴露菜单项） */
+      captureWithCredentials: true,
       unfoldMenu: false
     },
     language: 'auto',

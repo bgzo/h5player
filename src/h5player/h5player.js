@@ -1925,7 +1925,7 @@ const h5Player = {
 
   capture () {
     const player = this.player()
-    videoCapturer.capture(player, true, undefined, configManager.get('enhance.allowCrossOriginCapture'))
+    videoCapturer.capture(player, true, undefined, configManager.get('enhance.allowCrossOriginCapture'), configManager.get('enhance.captureWithCredentials'))
 
     /* 暂停画面 */
     if (!player.paused && !document.pictureInPictureElement && document.visibilityState !== 'visible') {
