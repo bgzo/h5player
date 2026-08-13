@@ -2177,8 +2177,8 @@ const configManager = new ConfigManager({
       allowCrossOriginControl: true,
       /* 截图被 CORS 污染时，是否重拉视频源绕开限制下载（默认关闭，开启后同一视频源只下载一次并缓存） */
       allowCrossOriginCapture: false,
-      /* 重拉视频源时是否携带 Cookie 凭据（默认携带，不暴露菜单项） */
-      captureWithCredentials: true,
+      /* 重拉视频源时是否携带 Cookie 凭据（默认不携带，可通过菜单项 toggleCaptureWithCredentials 切换） */
+      captureWithCredentials: false,
       unfoldMenu: false
     },
     language: 'auto',
@@ -3535,17 +3535,25 @@ const CACHE_IDLE_TIMEOUT = 4 * 60 * 60 * 1000;
  * 若服务器忽略 Range 返回完整 200，则直接复用响应体作为 blob，避免二次全量下载。
  * 返回 { size, blob }：size 为总大小（无法判断时为 0）；blob 非 null 表示已拿到完整内容。 */
 function probeVideoSize (url, withCredentials) {
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
     const gm = window.GM_xmlhttpRequest;
     if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
-    gm({
+    const timer = setTimeout(function () {
+      if (typeof gmRequest.abort === 'function') gmRequest.abort();
+      reject(new Error('Probe timeout'));
+    }, FETCH_TIMEOUT_MIN);
+    const gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
-      onerror: () => resolve({ size: 0, blob: null }),
+      onerror: () => {
+        clearTimeout(timer);
+        resolve({ size: 0, blob: null });
+      },
       onload: (res) => {
+        clearTimeout(timer);
         if (res.status >= 400) return resolve({ size: 0, blob: null })
         const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : '';
         const lower = headers.toLowerCase();
@@ -3584,6 +3592,10 @@ function evictExpiredCache () {
       videoCache.delete(key);
     }
   });
+  /* 顺带清掉已过冷却期的失败源记录，避免 failedSrc 无界增长 */
+  failedSrc.forEach(function (ts, key) {
+    if (now - ts >= RETRY_COOLDOWN) failedSrc.delete(key);
+  });
 }
 
 function loadVideoFromBlob (blob) {
@@ -3599,6 +3611,7 @@ function loadVideoFromBlob (blob) {
       resolve({ videoEl: tempVideo, objectUrl });
     }, { once: true });
     tempVideo.addEventListener('error', function () {
+      URL.revokeObjectURL(objectUrl);
       reject(new Error('视频解码失败'));
     }, { once: true });
   })
@@ -3626,13 +3639,6 @@ function getCachedVideo (srcUrl, options) {
       record.objectUrl = loaded.objectUrl;
       record.promise = null;
       failedSrc.delete(srcUrl);
-      if (!cacheable) {
-        /* 非缓存记录：下个微任务释放 objectUrl 并从缓存移除，避免长期占用内存 */
-        queueMicrotask(function () {
-          if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
-          videoCache.delete(srcUrl);
-        });
-      }
       return record
     })
     .catch(function (err) {
@@ -3680,7 +3686,14 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 
   /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高；
    * 若探测阶段已拿到完整 200 响应体（probedBlob），直接复用，不再发全量下载请求 */
-  const { size, blob: probedBlob } = await probeVideoSize(srcUrl, withCredentials);
+  let probe;
+  try {
+    probe = await probeVideoSize(srcUrl, withCredentials);
+  } catch (e) {
+    failedSrc.set(srcUrl, Date.now());
+    throw e
+  }
+  const { size, blob: probedBlob } = probe;
   const cacheable = size > 0 && size <= MAX_CACHE_SIZE;
 
   /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
@@ -3690,14 +3703,17 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob });
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl);
-  await seekVideo(record.videoEl, video.currentTime || 0);
-
-  const canvas = drawVideoToCanvas(record.videoEl);
-  if (!record.cacheable && record.objectUrl) {
-    URL.revokeObjectURL(record.objectUrl);
-    record.objectUrl = '';
+  try {
+    await seekVideo(record.videoEl, video.currentTime || 0);
+    const canvas = drawVideoToCanvas(record.videoEl);
+    return { canvas, title }
+  } finally {
+    if (!record.cacheable && record.objectUrl) {
+      URL.revokeObjectURL(record.objectUrl);
+      record.objectUrl = '';
+      videoCache.delete(srcUrl);
+    }
   }
-  return { canvas, title }
 }
 
 var videoCapturer = {
@@ -3811,6 +3827,7 @@ window.addEventListener('pagehide', function () {
     }
   });
   videoCache.clear();
+  failedSrc.clear();
 }, { once: true });
 
 /**
@@ -4163,6 +4180,9 @@ var zhCN = {
   crossOriginCapture: '启用跨CORS截图',
   disableCrossOriginCapture: '禁用跨CORS截图',
   captureFused: '跨CORS截图已被熔断，请稍后重试',
+  captureWithCredentials: '跨CORS截图携带凭据',
+  disableCaptureWithCredentials: '禁用跨CORS截图凭据',
+  captureWithCredentialsDesc: '重拉视频源截图时是否携带 Cookie，公开 CDN 建议关闭',
   crossOriginCaptureDesc: '截图被 CORS 阻断时，重新拉取视频源截图',
   mouse: {
     enable: '启用鼠标控制',
@@ -4316,6 +4336,9 @@ var enUS = {
   crossOriginCapture: 'Enable cross-CORS capture',
   disableCrossOriginCapture: 'Disable cross-CORS capture',
   captureFused: 'Cross-CORS capture is fused, please retry later',
+  captureWithCredentials: 'Cross-CORS capture with credentials',
+  disableCaptureWithCredentials: 'Disable cross-CORS capture credentials',
+  captureWithCredentialsDesc: 'Whether to send cookies when refetching the video source; off is recommended for public CDNs',
   crossOriginCaptureDesc: 'Refetch the video source for the screenshot when it is blocked by CORS',
   mouse: {
     enable: 'Enable mouse control',
@@ -4467,6 +4490,9 @@ var ru = {
   crossOriginCapture: 'Включить снятие скриншотов через CORS',
   disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
   captureFused: 'Снятие скриншота через CORS приостановлено, повторите позже',
+  captureWithCredentials: 'Снятие скриншота через CORS с учётными данными',
+  disableCaptureWithCredentials: 'Отключить учётные данные cross-CORS',
+  captureWithCredentialsDesc: 'Отправлять ли cookie при повторной загрузке источника; для публичных CDN рекомендуется выключить',
   crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
   mouse: {
     enable: 'Включить управление мышью',
@@ -4617,6 +4643,9 @@ var zhTW = {
   crossOriginCapture: '啟用跨CORS截圖',
   disableCrossOriginCapture: '禁用跨CORS截圖',
   captureFused: '跨CORS截圖已被熔斷，請稍後重試',
+  captureWithCredentials: '跨CORS截圖攜帶憑證',
+  disableCaptureWithCredentials: '禁用跨CORS截圖憑證',
+  captureWithCredentialsDesc: '重拉影片來源截圖時是否攜帶 Cookie，公開 CDN 建議關閉',
   crossOriginCaptureDesc: '截圖被 CORS 阻斷時，重新拉取影片來源截圖',
   mouse: {
     enable: '啟用鼠標控制',
@@ -14037,6 +14066,14 @@ const h5Player = {
     const enable = !configManager.get('enhance.allowCrossOriginCapture');
     configManager.setGlobalStorage('enhance.allowCrossOriginCapture', enable);
     t.tips(enable ? i18n.t('crossOriginCapture') : i18n.t('disableCrossOriginCapture'));
+  },
+
+  /* 切换：跨 CORS 重拉视频源时是否携带 Cookie 凭据 */
+  toggleCaptureWithCredentials () {
+    const t = this;
+    const enable = !configManager.get('enhance.captureWithCredentials');
+    configManager.setGlobalStorage('enhance.captureWithCredentials', enable);
+    t.tips(enable ? i18n.t('captureWithCredentials') : i18n.t('disableCaptureWithCredentials'));
   },
 
   /**
