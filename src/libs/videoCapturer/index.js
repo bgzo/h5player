@@ -98,10 +98,11 @@ function probeVideoSize (url, withCredentials) {
   })
 }
 
-/* 当切换到新视频源时，释放旧视频占用的内存，避免一个页面累计下载多部影片 */
+/* 当切换到新视频源时，释放旧视频占用的内存，避免一个页面累计下载多部影片；
+ * 在途下载（record.promise 仍 pending）的记录不驱逐，避免其完成后 objectUrl/blob 泄漏 */
 function evictOtherVideos (keepUrl) {
   videoCache.forEach(function (record, key) {
-    if (key !== keepUrl && record.objectUrl) {
+    if (key !== keepUrl && record.promise === null && record.objectUrl) {
       URL.revokeObjectURL(record.objectUrl)
       videoCache.delete(key)
     }
@@ -196,6 +197,8 @@ async function captureViaBlob (video, title, enableCrossOriginCapture) {
   const cacheable = size > 0 && size <= MAX_CACHE_SIZE
 
   const record = await getCachedVideo(srcUrl, { withCredentials: !!enableCrossOriginCapture, cacheable })
+  /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
+  evictOtherVideos(srcUrl)
   await seekVideo(record.videoEl, video.currentTime || 0)
 
   const canvas = drawVideoToCanvas(record.videoEl)
