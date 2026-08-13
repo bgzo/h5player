@@ -247,17 +247,24 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   evictExpiredCache()
   evictOtherVideos(srcUrl)
 
-  /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高；
-   * 若探测阶段已拿到完整 200 响应体（probedBlob），直接复用，不再发全量下载请求 */
-  let probe
-  try {
-    probe = await probeVideoSize(srcUrl, withCredentials)
-  } catch (e) {
-    failedSrc.set(srcUrl, Date.now())
-    throw e
+  /* 仅缓存未命中时才探测大小：命中（含仍 pending 的在途记录）直接复用，避免每次截图多打一次 Range 请求；
+   * 超 1G 或无法探测大小的视频不缓存 */
+  const cached = videoCache.get(srcUrl)
+  let probedBlob = null
+  let cacheable = false
+  if (cached) {
+    cacheable = cached.cacheable
+  } else {
+    let probe
+    try {
+      probe = await probeVideoSize(srcUrl, withCredentials)
+    } catch (e) {
+      failedSrc.set(srcUrl, Date.now())
+      throw e
+    }
+    probedBlob = probe.blob
+    cacheable = probe.size > 0 && probe.size <= MAX_CACHE_SIZE
   }
-  const { size, blob: probedBlob } = probe
-  const cacheable = size > 0 && size <= MAX_CACHE_SIZE
 
   /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
   const duration = video.duration
