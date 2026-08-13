@@ -3607,7 +3607,7 @@ function evictOtherVideos (keepUrl) {
 function evictExpiredCache () {
   const now = Date.now();
   videoCache.forEach(function (record, key) {
-    if (now - record.lastUsed > CACHE_IDLE_TIMEOUT) {
+    if (now - record.lastUsed > CACHE_IDLE_TIMEOUT && !record.inUse) {
       if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
       videoCache.delete(key);
     }
