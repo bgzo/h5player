@@ -3618,7 +3618,7 @@ function loadVideoFromBlob (blob) {
 }
 
 /* 获取（或下载并缓存）视频源对应的临时 video；统一写入 videoCache 用于并发去重，
- * record.cacheable 标记是否长期驻留，非缓存记录在使用后通过微任务释放 */
+ * record.cacheable 标记是否长期驻留，非缓存记录同样驻留至 evictOtherVideos/evictExpiredCache/pagehide 清理 */
 function getCachedVideo (srcUrl, options) {
   options = options || {};
   const cacheable = !!options.cacheable;
@@ -3684,17 +3684,18 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   evictExpiredCache();
   evictOtherVideos(srcUrl);
 
-  /* 全量下载前探测大小，超过 1G 或无法探测大小的视频不缓存，避免内存占用过高；
-   * 若探测阶段已拿到完整 200 响应体（probedBlob），直接复用，不再发全量下载请求 */
-  let probe;
-  try {
-    probe = await probeVideoSize(srcUrl, withCredentials);
-  } catch (e) {
-    failedSrc.set(srcUrl, Date.now());
-    throw e
+  /* 仅缓存未命中时才探测大小：命中（含仍 pending 的在途记录）直接复用，避免每次截图多打一次 Range 请求；
+   * 超 1G 或无法探测大小的视频不缓存 */
+  const cached = videoCache.get(srcUrl);
+  let probedBlob = null;
+  let cacheable = false;
+  if (cached) {
+    cacheable = cached.cacheable;
+  } else {
+    const probe = await probeVideoSize(srcUrl, withCredentials);
+    probedBlob = probe.blob;
+    cacheable = probe.size > 0 && probe.size <= MAX_CACHE_SIZE;
   }
-  const { size, blob: probedBlob } = probe;
-  const cacheable = size > 0 && size <= MAX_CACHE_SIZE;
 
   /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
   const duration = video.duration;
@@ -3703,17 +3704,9 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob });
   /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
   evictOtherVideos(srcUrl);
-  try {
-    await seekVideo(record.videoEl, video.currentTime || 0);
-    const canvas = drawVideoToCanvas(record.videoEl);
-    return { canvas, title }
-  } finally {
-    if (!record.cacheable && record.objectUrl) {
-      URL.revokeObjectURL(record.objectUrl);
-      record.objectUrl = '';
-      videoCache.delete(srcUrl);
-    }
-  }
+  await seekVideo(record.videoEl, video.currentTime || 0);
+  const canvas = drawVideoToCanvas(record.videoEl);
+  return { canvas, title }
 }
 
 var videoCapturer = {
@@ -11695,6 +11688,11 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               title: `${i18n.t('toggleStates')} ${i18n.t('crossOriginCapture')}`,
               desc: i18n.t('crossOriginCaptureDesc'),
               action: 'toggleCrossOriginCapture'
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('captureWithCredentials')}`,
+              desc: i18n.t('captureWithCredentialsDesc'),
+              action: 'toggleCaptureWithCredentials'
             }
           ]
         },
