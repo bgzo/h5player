@@ -3937,9 +3937,10 @@ const videoCapturer = {
    * 把已载入内存（videoCache）的视频源下载到本地，命中缓存直接复用 blob（不重新请求）。
    * @param video {dom} -必选 video dom 标签
    * @param onlyIfCached {boolean} -为 true 时仅在已缓存（已 fetch）的情况下下载，未缓存则不拉取
+   * @param withCredentials {boolean} -拉取时是否携带 Cookie 凭据，与截图路径 enhance.captureWithCredentials 保持一致
    * @returns {boolean} 是否成功触发（仅判断缓存命中与否，异步下载结果见控制台）
    */
-  downloadVideo (video, onlyIfCached) {
+  downloadVideo (video, onlyIfCached, withCredentials) {
     const srcUrl = getVideoSourceUrl(video);
     if (!srcUrl) return false
     if (!/^https?:/i.test(srcUrl)) return false
@@ -3955,7 +3956,7 @@ const videoCapturer = {
      * 超时随视频时长动态调整（与 captureViaBlob 一致） */
     const duration = video.duration;
     const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK);
-    getCachedVideo(srcUrl, { withCredentials: false, cacheable: true, timeoutMs })
+    getCachedVideo(srcUrl, { withCredentials: !!withCredentials, cacheable: true, timeoutMs })
       .then(function (record) {
         if (record.blob) saveBlobToLocal(record.blob, srcUrl);
       })
@@ -7211,7 +7212,10 @@ function download (url, title) {
   downloadEl.href = url;
   downloadEl.target = '_blank';
   downloadEl.download = title;
+  /* 挂到 DOM 再点击，部分浏览器（如旧版 Firefox）对未挂载的 <a download> 不触发下载；点击后随即移除 */
+  document.body.appendChild(downloadEl);
   downloadEl.click();
+  downloadEl.remove();
 }
 
 function mediaDownload (mediaEl, title, downloadType) {
@@ -11867,7 +11871,7 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               action: 'toggleCaptureWithCredentials'
             },
             {
-              title: i18n.t('downloadCachedVideo'),
+              title: `${i18n.t('toggleStates')} ${i18n.t('downloadCachedVideo')}`,
               desc: i18n.t('downloadCachedVideoDesc'),
               action: 'toggleDownloadCachedVideo'
             }
@@ -14258,7 +14262,7 @@ const h5Player = {
     configManager.setGlobalStorage('enhance.autoDownloadCachedVideo', enable);
     videoCapturer.autoDownloadCachedVideo = enable;
     if (enable) {
-      videoCapturer.downloadVideo(t.player(), true);
+      videoCapturer.downloadVideo(t.player(), true, configManager.get('enhance.captureWithCredentials'));
     }
     t.tips(enable ? i18n.t('downloadCachedVideo') : i18n.t('disableDownloadCachedVideo'));
   },
