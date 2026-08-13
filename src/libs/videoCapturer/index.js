@@ -255,13 +255,7 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   if (cached) {
     cacheable = cached.cacheable
   } else {
-    let probe
-    try {
-      probe = await probeVideoSize(srcUrl, withCredentials)
-    } catch (e) {
-      failedSrc.set(srcUrl, Date.now())
-      throw e
-    }
+    const probe = await probeVideoSize(srcUrl, withCredentials)
     probedBlob = probe.blob
     cacheable = probe.size > 0 && probe.size <= MAX_CACHE_SIZE
   }
