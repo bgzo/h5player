@@ -155,6 +155,10 @@ function evictExpiredCache () {
       videoCache.delete(key)
     }
   })
+  /* 顺带清掉已过冷却期的失败源记录，避免 failedSrc 无界增长 */
+  failedSrc.forEach(function (ts, key) {
+    if (now - ts >= RETRY_COOLDOWN) failedSrc.delete(key)
+  })
 }
 
 function loadVideoFromBlob (blob) {
@@ -386,6 +390,7 @@ window.addEventListener('pagehide', function () {
     }
   })
   videoCache.clear()
+  failedSrc.clear()
 }, { once: true })
 
 export default videoCapturer
