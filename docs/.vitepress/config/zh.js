@@ -16,7 +16,7 @@ export const zh = defineConfig({
             text: '安装地址',
             items: [
               { text: 'Greasy Fork', link: 'https://greasyfork.org/zh-CN/scripts/381682', target: '_blank' },
-              { text: 'GitHub dist', link: 'https://raw.githubusercontent.com/bgzo/h5player/master/dist/h5player.js', target: '_blank' },
+              { text: 'GitHub dist', link: 'https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js', target: '_blank' },
             ]
           },
           {

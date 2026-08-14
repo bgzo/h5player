@@ -182,5 +182,5 @@ If the website you frequent is not well supported, feel free to raise [issues](h
 
 ## Update Log
 
-- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/master/changeLog.md)
+- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/hx/changeLog.md)
 

@@ -197,4 +197,4 @@
 
 ## 更新日志
 
-- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/master/changeLog.md)
+- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/hx/changeLog.md)

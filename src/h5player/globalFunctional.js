@@ -94,7 +94,7 @@ const globalFunctional = {
     fn: () => {
       const confirm = window.confirm(`${i18n.t('currentVersion')}「${version}」\n${i18n.t('checkVersion')}`)
       if (confirm) {
-        openInTab('https://greasyfork.org/zh-CN/scripts/381682/versions')
+        openInTab('https://github.com/bgzo/h5player/releases')
       }
     }
   },
