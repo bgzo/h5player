@@ -2328,15 +2328,7 @@ const configManager = new ConfigManager({
     },
     ui: {
       enable: true,
-      alwaysShow: false,
-
-      /* UI模块的相关配置 */
-      mod: {
-        /* 默认禁用推荐模块 */
-        recommend: {
-          enable: false
-        }
-      }
+      alwaysShow: false
     },
     download: {
       enable: true
@@ -2384,7 +2376,6 @@ async function initUiConfigManager () {
 
   function init (pageWindow) {
     const config = JSON.parse(JSON.stringify(configManager.getConfObj()));
-    delete config.recommendList;
     if (Array.isArray(config.hotkeys)) {
       /* 给hotkeys的各自项添加disabled选项，以便在界面侧可以快速禁用或启用某个项 */
       config.hotkeys.forEach(item => {
@@ -2401,9 +2392,7 @@ async function initUiConfigManager () {
 
     pageWindow.saveH5PlayerConfig = function (editor) {
       try {
-        const defConfig = configManager.getConfObj();
         const newConfig = editor.get();
-        newConfig.recommendList = defConfig.recommendList || [];
         configManager.setGlobalStorageByObj(newConfig);
         alert('配置已更新');
       } catch (e) {
@@ -4281,11 +4270,6 @@ var zhCN = {
   disableHotkeys: '禁用快捷键',
   enableMouseControl: '启用鼠标控制',
   disableMouseControl: '禁用鼠标控制',
-  donate: '👍请作者喝杯咖啡',
-  aboutDonate: '100万级安装量的作品，有多少打赏？',
-  aiProjects: '4000+ AI开源项目',
-  aboutAuthor: '关于作者',
-  recommend: '❤️ 免费ChatGPT-4 ❤️',
   enableScript: '启用脚本',
   disableScript: '禁用脚本',
   disableCurrentInstanceGUI: '关闭当前图形用户界面',
@@ -4325,7 +4309,6 @@ var zhCN = {
   closeDebugMode: '关闭调试模式',
   unfoldMenu: '展开菜单',
   foldMenu: '折叠菜单',
-  addGroupChat: '💬添加群聊',
   speed: '倍速',
   capture: '截图',
   download: '下载',
@@ -4370,7 +4353,6 @@ var zhCN = {
   default: '默认',
   autoChoose: '自动选择',
   comingSoon: '更多功能正在完善中，敬请期待',
-  ffmpegScript: '音视频合并/转换脚本',
   autoGotoBufferedTime: '自动跟随跳转到缓冲区时间',
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
   crossOriginCapture: '启用跨CORS截图',
@@ -4438,10 +4420,6 @@ var enUS = {
   toggleHotkeysTemporarily: 'Toggle hotkeys temporarily',
   enableHotkeys: 'Enable hotkeys',
   disableHotkeys: 'Disable hotkeys',
-  donate: '👍Donate',
-  aboutDonate: 'How much the author has received?',
-  aiProjects: '4000+ AI Open Source Projects',
-  aboutAuthor: 'About the author',
   enableScript: 'Enable script',
   disableScript: 'Disable script',
   disableCurrentInstanceGUI: 'Close the current graphical user interface',
@@ -4481,7 +4459,6 @@ var enUS = {
   closeDebugMode: 'Turn off debug mode',
   unfoldMenu: 'Expand menu',
   foldMenu: 'Collapse menu',
-  addGroupChat: '💬Add chat group',
   speed: 'Speed',
   capture: 'Capture',
   download: 'Download',
@@ -4526,7 +4503,6 @@ var enUS = {
   default: 'Default',
   autoChoose: 'Auto choose',
   comingSoon: 'More features are being improved, stay tuned',
-  ffmpegScript: 'Audio and video merge/convert script',
   autoGotoBufferedTime: 'Automatically jump to the buffered time',
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
   crossOriginCapture: 'Enable cross-CORS capture',
@@ -4592,10 +4568,6 @@ var ru = {
   toggleHotkeysTemporarily: 'временно включить/отключить горячие клавиши',
   enableHotkeys: 'включить горячие клавиши',
   disableHotkeys: 'отключить горячие клавиши',
-  donate: '👍пожертвовать',
-  aboutDonate: 'Сколько автор получил?',
-  aiProjects: '4000+ AI-проектов с открытым исходным кодом',
-  aboutAuthor: 'о авторе',
   enableScript: 'включить скрипт',
   disableScript: 'отключить скрипт',
   disableCurrentInstanceGUI: 'отключить текущий графический интерфейс пользователя',
@@ -4635,7 +4607,6 @@ var ru = {
   closeDebugMode: 'отключить режим отладки',
   unfoldMenu: 'развернуть меню',
   foldMenu: 'свернуть меню',
-  addGroupChat: '💬Добавить группу чата',
   speed: 'Скорость',
   capture: 'Захват',
   download: 'Скачать',
@@ -4680,7 +4651,6 @@ var ru = {
   default: 'По умолчанию',
   autoChoose: 'Автоматический выбор',
   comingSoon: 'Больше функций находится в процессе улучшения, следите за обновлениями',
-  ffmpegScript: 'Скрипт слияния/преобразования аудио и видео',
   autoGotoBufferedTime: 'Автоматически перейти к времени буфера',
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
   crossOriginCapture: 'Включить снятие скриншотов через CORS',
@@ -4745,10 +4715,6 @@ var zhTW = {
   toggleHotkeysTemporarily: '臨時啟用/禁用快捷鍵',
   enableHotkeys: '啟用快捷鍵',
   disableHotkeys: '禁用快捷鍵',
-  donate: '👍讚賞',
-  aboutDonate: '100萬級安裝量的作品，有多少打賞？',
-  aiProjects: '4000+ AI開源項目',
-  aboutAuthor: '關於作者',
   enableScript: '啟用腳本',
   disableScript: '禁用腳本',
   disableCurrentInstanceGUI: '關閉當前圖形用戶界面',
@@ -4788,7 +4754,6 @@ var zhTW = {
   closeDebugMode: '關閉調試模式',
   unfoldMenu: '展開菜單',
   foldMenu: '折疊菜單',
-  addGroupChat: '💬新增群聊',
   speed: '倍速',
   capture: '截圖',
   download: '下載',
@@ -4833,7 +4798,6 @@ var zhTW = {
   default: '默認',
   autoChoose: '自動選擇',
   comingSoon: '更多功能正在完善中，敬請期待',
-  ffmpegScript: '音視頻合併/轉換腳本',
   autoGotoBufferedTime: '自動跟隨跳轉到緩衝區時間',
   disableAutoGotoBufferedTime: '禁用自動跟隨跳轉到緩衝區時間',
   crossOriginCapture: '啟用跨CORS截圖',
@@ -5939,11 +5903,6 @@ const globalFunctional = {
     desc: i18n.t('website'),
     fn: () => openInTab(getHomePage())
   },
-  openAuthorHomePage: {
-    title: i18n.t('aboutAuthor'),
-    desc: i18n.t('aboutAuthor'),
-    fn: () => { openInTab('https://github.com/bgzo'); }
-  },
   openHotkeysPage: {
     title: i18n.t('hotkeysDocs'),
     desc: i18n.t('hotkeysDocs'),
@@ -5965,29 +5924,6 @@ const globalFunctional = {
     desc: i18n.t('issues'),
     fn: () => openInTab('https://github.com/bgzo/h5player/issues')
   },
-  openDonatePage: {
-    title: i18n.t('donate'),
-    desc: i18n.t('donate'),
-    fn: () => openDocsByPath('/home/rewardTheAuthor')
-  },
-  openAboutDonatePage: {
-    title: i18n.t('aboutDonate'),
-    desc: i18n.t('aboutDonate'),
-    fn: () => openDocsByPath('/home/aboutDonate')
-  },
-  openAiProjectsPage: {
-    title: i18n.t('aiProjects'),
-    desc: i18n.t('aiProjects'),
-    fn: () => openInTab('https://hello-ai.anzz.site/home/categories.html')
-  },
-  openAddGroupChatPage: {
-    title: i18n.t('addGroupChat'),
-    desc: i18n.t('addGroupChat'),
-    fn: () => {
-      const groupChatUrl = isChinese() ? 'https://h5player.anzz.site/zh/home/quickStart#%E4%BA%A4%E6%B5%81%E7%BE%A4' : 'https://h5player.anzz.top/home/quickStart#discussion-groups';
-      openInTab(groupChatUrl);
-    }
-  },
   openChangeLogPage: {
     title: i18n.t('changeLog'),
     desc: i18n.t('changeLog'),
@@ -6000,21 +5936,6 @@ const globalFunctional = {
       const confirm = window.confirm(`${i18n.t('currentVersion')}「${version}」\n${i18n.t('checkVersion')}`);
       if (confirm) {
         openInTab('https://greasyfork.org/zh-CN/scripts/381682/versions');
-      }
-    }
-  },
-  openRecommendPage: {
-    title: i18n.t('recommend'),
-    desc: i18n.t('recommend'),
-    fn: () => {
-      function randomZeroOrOne() {
-        return Math.floor(Math.random() * 2)
-      }
-
-      if (randomZeroOrOne()) {
-        openInTab('https://hello-ai.anzz.top/home/');
-      } else {
-        openInTab('https://github.com/bgzo/hello-ai');
       }
     }
   },
@@ -6313,16 +6234,6 @@ const globalFunctional = {
     }
   },
 
-  cleanRemoteHelperInfo: {
-    title: i18n.t('cleanRemoteHelperInfo'),
-    desc: i18n.t('cleanRemoteHelperInfo'),
-    fn: () => {
-      configManager.setGlobalStorage('recommendList', false);
-      configManager.setGlobalStorage('contactRemoteHelperSuccessTime', false);
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', false);
-      window.location.reload();
-    }
-  }
 };
 
 /*!
@@ -6341,8 +6252,6 @@ let monkeyMenuList = [
     ...globalFunctional.openIssuesPage,
     disable: !configManager.get('enhance.unfoldMenu')
   },
-  { ...globalFunctional.openDonatePage },
-  { ...globalFunctional.openAiProjectsPage },
   {
     ...globalFunctional.toggleScriptEnableState
   },
@@ -7388,106 +7297,6 @@ const windowSandbox = new Proxy({}, {
     return window[key]
   }
 });
-
-/**
- * 跟官网进行互动，以实现以下功能
- * 1、新版本检测 (待实现)
- * 2、脚本安装使用情况统计
- * 3、获取最新的推荐信息
- */
-
-
-const remoteHelperUrl = 'https://h5player.anzz.site/h5p-helper/index.html';
-
-const remoteHelper = {
-  init () {
-    this.remoteHandler();
-
-    /* 减少重复加载和防止循环嵌套 */
-    if (isInIframe()) { return false }
-
-    if (!configManager.isGlobalStorageUsable()) { return false }
-
-    const contactRemoteHelperSuccessTime = configManager.getGlobalStorage('contactRemoteHelperSuccessTime');
-    let lastContactRemoteHelperTime = configManager.getGlobalStorage('lastContactRemoteHelperTime');
-    if (!lastContactRemoteHelperTime) {
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', Date.now());
-      lastContactRemoteHelperTime = Date.now();
-    }
-
-    /**
-     * 减少跟远程助手的握手次数
-     * 12小时内有成功握手过的话，就不再重复握手
-     * 最少间隔1分钟才进行下一次握手
-     */
-    const syncInterval = configManager.getGlobalStorage('remoteHelperSyncInterval') || 1000 * 60 * 60 * 12;
-    if (contactRemoteHelperSuccessTime && Date.now() - contactRemoteHelperSuccessTime < syncInterval) { return false }
-    if (Date.now() - lastContactRemoteHelperTime < 1000 * 60) { return false }
-
-    this.establishRemoteConnection();
-  },
-
-  establishRemoteConnection () {
-    const lastSucTime = configManager.getGlobalStorage('contactRemoteHelperSuccessTime') || '0';
-    const timeStr = new Date().toISOString().split('T')[0].replace(/-/g, '') + new Date().getHours() + '' + new Date().getMinutes();
-    const iframe = document.createElement('iframe');
-    iframe.src = `${remoteHelperUrl}?t=${timeStr}&v=${version}&lst=${lastSucTime}`;
-    iframe.style.cssText = 'width:0; height:0; border:none; visibility:hidden; opacity:0;';
-    const insertIframe = () => {
-      document.body.appendChild(iframe);
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', Date.now());
-    };
-
-    if (!document.body || !document.body.appendChild) {
-      window.addEventListener('DOMContentLoaded', insertIframe, { once: true });
-    } else {
-      insertIframe();
-    }
-
-    /* 不管握手成功与否，10秒后移除iframe，主动终止跟远程助手的连接 */
-    setTimeout(() => { document.body.removeChild(iframe); }, 10000);
-  },
-
-  async remoteHandler () {
-    if (!location.href.startsWith(remoteHelperUrl) || !configManager.isGlobalStorageUsable()) { return false }
-
-    function syncRemoteData (pageWindow) {
-      if (pageWindow.recommendList) {
-        configManager.setGlobalStorage('recommendList', pageWindow.recommendList);
-      }
-
-      /* 待增加版本对比判断逻辑 */
-      if (pageWindow.remoteVersion) {
-        configManager.setGlobalStorage('remoteVersion', pageWindow.remoteVersion);
-      }
-
-      if (pageWindow.remoteHelperSyncInterval) {
-        configManager.setGlobalStorage('remoteHelperSyncInterval', pageWindow.remoteHelperSyncInterval);
-      }
-
-      configManager.setGlobalStorage('contactRemoteHelperSuccessTime', Date.now());
-    }
-
-    let checkCount = 0;
-    function checkRemoteHelperStatus (pageWindow) {
-      if (!Array.isArray(pageWindow.recommendList)) {
-        if (checkCount < 30) {
-          setTimeout(() => {
-            checkCount++;
-            checkRemoteHelperStatus(pageWindow);
-          }, 200);
-        }
-
-        return
-      }
-
-      syncRemoteData(pageWindow);
-    }
-
-    const pageWindow = await getPageWindow();
-    pageWindow && checkRemoteHelperStatus(pageWindow);
-  }
-};
 
 /**
   * 检测当前页面是否为 Cloudflare 的 challenge 页面
@@ -11866,12 +11675,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           desc: i18n.t('moreActions'),
           subMenu: [
             {
-              title: 'Clean remote helper info',
-              desc: 'Clean remote helper info',
-              action: 'cleanRemoteHelperInfo',
-              disabled: !debug$1.isDebugMode()
-            },
-            {
               title: 'Print Player info',
               desc: 'Print Player info',
               action: 'printPlayerInfo',
@@ -11967,11 +11770,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               title: `${i18n.t('toggleStates')} ${i18n.t('autoGotoBufferedTime')}`,
               desc: `${i18n.t('toggleStates')} ${i18n.t('autoGotoBufferedTime')}`,
               action: 'toggleAutoGotoBufferedTime'
-            },
-            {
-              title: i18n.t('ffmpegScript'),
-              desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/bgzo/ffmpeg-script'
             }
           ]
         },
@@ -12111,11 +11909,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               args: ''
             },
             {
-              ...globalFunctional.openAddGroupChatPage,
-              action: 'openAddGroupChatPage',
-              args: ''
-            },
-            {
               ...globalFunctional.openChangeLogPage,
               action: 'openChangeLogPage',
               args: ''
@@ -12124,38 +11917,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               ...globalFunctional.openCheckVersionPage,
               action: 'openCheckVersionPage',
               args: ''
-            },
-            {
-              ...globalFunctional.openDonatePage,
-              action: 'openDonatePage',
-              args: ''
-            },
-            // {
-            //   ...globalFunctional.openAboutDonatePage,
-            //   action: 'openAboutDonatePage',
-            //   args: ''
-            // },
-            {
-              ...globalFunctional.openAiProjectsPage,
-              action: 'openAiProjectsPage',
-              args: ''
-            },
-            {
-              ...globalFunctional.openAuthorHomePage,
-              action: 'openAuthorHomePage',
-              args: ''
-            }
-          ]
-        },
-        {
-          title: i18n.t('more'),
-          desc: i18n.t('more'),
-          disabled: true,
-          subMenu: [
-            {
-              title: i18n.t('ffmpegScript'),
-              desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/bgzo/ffmpeg-script'
             }
           ]
         }
@@ -12260,98 +12021,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
   function createLogoModTemplate () {
     const homepage = globalFunctional.getHomePageLink.fn();
     return `<a class="h5p-logo-mod" href="${homepage}" target="_blank">h5player</a>`
-  }
-
-  const defaultRecommendList = [];
-
-  function createRecommendModTemplate (refDom) {
-    const showMod = isGlobalStorageUsable && configManager$1.getGlobalStorage('ui.mod.recommend.enable');
-    if (!showMod) { return '' }
-
-    const refWidth = refDom.offsetWidth;
-    if (refWidth < 500) { return '' }
-
-    let recommendList = configManager$1.getGlobalStorage('recommendList') || defaultRecommendList;
-    recommendList = recommendList.filter(item => !item.disabled);
-
-    const curLang = i18n.language() || '';
-    /* 兼容各种可能的语言配置写法 */
-    const curLang2 = curLang.replace('-', '');
-    const curLang3 = curLang.replace('-', '_');
-    const curLang4 = curLang.split('-')[0];
-
-    /* 根据当前的language和recommendList的languages配置过滤出符合当前语言的recommendList */
-    recommendList = recommendList.filter(item => {
-      const lang = item.lang || item.language || item.languages;
-      if (lang) {
-        return i18n.isMatchCurLang(lang)
-      } else {
-        return true
-      }
-    });
-
-    if (!recommendList.length) { return '' }
-
-    /* 从recommendList里随机取5条数据，多余的不予以展示 */
-    if (recommendList.length > 5) { recommendList = recommendList.sort(() => Math.random() - 0.5).slice(0, 5); }
-
-    /* 根据recommendList里的priority字段进行排序，priority值越大越靠前 */
-    recommendList = recommendList.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-
-    const recommendHtml = recommendList.map(item => {
-      let title = item.title || '';
-      let desc = item.desc || '';
-      let url = item.url || '';
-
-      if (item.i18n) {
-        const i18nInfo = item.i18n[`${curLang}`] || item.i18n[`${curLang2}`] || item.i18n[`${curLang3}`] || item.i18n[`${curLang4}`];
-        if (i18nInfo) {
-          title = i18nInfo.title || title;
-          desc = i18nInfo.desc || desc;
-          url = i18nInfo.url || url;
-        }
-      }
-
-      return `<a class="h5p-recommend-item" href="${url}" title="${desc}" target="_blank">${title}</a>`
-    }).join('');
-
-    return `<div class="h5p-recommend-mod" >${recommendHtml}</div>`
-  }
-
-  /**
-   * 注册Recommend切换逻辑，每4s检测一次当前哪个h5p-recommend-item上有h5p-recommend-item__active，然后将h5p-recommend-item__active切换到下一个元素，如此往复
-   * 当鼠标移动到recommendWrap的时候停止切换，移开后继续切换
-   */
-  function registerRecommendModToggle (recommendWrap, reRender) {
-    if (!reRender && (!recommendWrap || recommendWrap.__h5pRecommendModRegistered__)) { return }
-
-    let recommendIndex = 0;
-    recommendWrap.__stopToggle__ = false;
-
-    const toggleRecommend = () => {
-      if (recommendWrap.__stopToggle__) { return }
-      const recommendItems = recommendWrap.querySelectorAll('.h5p-recommend-item');
-      recommendItems.forEach((item, index) => {
-        if (index === recommendIndex) {
-          item.classList.add('h5p-recommend-item__active');
-        } else {
-          item.classList.remove('h5p-recommend-item__active');
-        }
-      });
-
-      recommendIndex = (recommendIndex + 1) % recommendItems.length;
-    };
-
-    toggleRecommend();
-
-    clearInterval(recommendWrap.__h5pRecommendModInterval__);
-    recommendWrap.__h5pRecommendModInterval__ = setInterval(toggleRecommend, 3000);
-    if (!reRender) {
-      recommendWrap.addEventListener('mouseenter', () => { recommendWrap.__stopToggle__ = true; });
-      recommendWrap.addEventListener('mouseleave', () => { recommendWrap.__stopToggle__ = false; });
-    }
-
-    recommendWrap.__h5pRecommendModRegistered__ = true;
   }
 
   /**
@@ -12534,9 +12203,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           <div class="h5p-logo-wrap">
             ${createLogoModTemplate()}
           </div>
-          <div class="h5p-recommend-wrap">
-            <div style="overflow:hidden">${createRecommendModTemplate(element)}</div>
-          </div>
           <div class="h5p-menu-wrap">
             ${menuTemplate}
           </div>
@@ -12544,8 +12210,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
         </sl-popup>
       </div>
     `, document.body)[0];
-
-      setTimeout(() => { registerRecommendModToggle(popupWrap.querySelector('.h5p-recommend-wrap')); }, 100);
 
       const popup = popupWrap.querySelector('sl-popup');
 
@@ -12610,21 +12274,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
 
       /* 油管首次渲染会莫名其妙的出错，所以此处延迟一段时间重新渲染一次菜单 */
       setTimeout(() => { reRenderMenuMod(); }, 400);
-
-      /* 重新渲染h5p-recommend-mod对应的推荐模块，如果位置不够则对隐藏该模块 */
-      function reRenderRecommendMod () {
-        const recommendWrap = popupWrap.querySelector('.h5player-popup-content .h5p-recommend-wrap');
-        const recommendMod = popupWrap.querySelector('.h5player-popup-content .h5p-recommend-wrap>div');
-        if (recommendWrap && recommendMod) {
-          recommendWrap.removeChild(recommendMod);
-
-          const newRecommendModTemplate = `<div style="overflow:hidden">${createRecommendModTemplate(element)}</div>`;
-          parseHTML(newRecommendModTemplate, recommendWrap);
-
-          registerRecommendModToggle(recommendWrap, true);
-          // debug.log('[h5playerUI][popup][reRenderRecommendMod]')
-        }
-      }
 
       const activeClass = 'h5player-popup-active';
       const fullActiveClass = 'h5player-popup-full-active';
@@ -12806,7 +12455,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           if (newRect.width !== popup.oldRect.width) {
             popup.oldRect = newRect;
             reRenderMenuMod();
-            reRenderRecommendMod();
           }
         }
       });
@@ -15656,17 +15304,6 @@ async function h5PlayerInit () {
     }
   } else {
     debug.warn('UI组件已被禁用', configManager.get('ui.enable'));
-  }
-
-  /**
-   * 跟官网远程助手进行互动，有严重安全或信息洁癖的人手动注释下面代码即可
-   * 下面代码不会影响主要功能的正常使用
-   * 不注释代码，禁用UI界面也有同等效果
-   */
-  try {
-    configManager.get('ui.enable') !== false && remoteHelper.init();
-  } catch (e) {
-    debug.error('[remoteHelper.init]', e);
   }
 
   // console.clear = () => {}
