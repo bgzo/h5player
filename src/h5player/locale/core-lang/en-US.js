@@ -113,6 +113,10 @@ export default {
   disableCaptureWithCredentials: 'Disable cross-CORS capture credentials',
   captureWithCredentialsDesc: 'Whether to send cookies when refetching the video source; off is recommended for public CDNs',
   crossOriginCaptureDesc: 'Refetch the video source for the screenshot when it is blocked by CORS',
+  downloadCachedVideo: 'Download cached video',
+  disableDownloadCachedVideo: 'Disable download cached video',
+  downloadCachedVideoDesc: 'Automatically save the video to local after a cross-CORS fetch; when enabled and already cached, download it immediately without re-requesting',
+  downloadProgress: 'Downloading {loaded} / {total} ({percent}%), remaining ~{remaining}',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',

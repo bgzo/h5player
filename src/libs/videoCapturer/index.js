@@ -44,6 +44,42 @@ class CaptureFusedError extends Error {}
 /* 记录最近一次失败的视频源（srcUrl -> 失败时间戳），用于冷却期内的熔断 */
 const failedSrc = new Map()
 
+/* 下载进度日志间隔：每 10s 打印一次已下载字节与预计剩余时间 */
+const PROGRESS_LOG_INTERVAL = 10000
+
+/* 将字节数格式化为易读的带单位字符串 */
+function formatBytes (bytes) {
+  if (!bytes || bytes <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
+  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i]
+}
+
+/* 创建单次下载的进度记录器（闭包隔离并发下载），由 GM 的 onprogress 回调调用；
+ * 每 PROGRESS_LOG_INTERVAL 打印一次 console 进度，并触发 videoCapturer.onProgress 供宿主提示 */
+function createProgressLogger (url) {
+  let last = { loaded: 0, time: Date.now() }
+  return function (loaded, total) {
+    const now = Date.now()
+    if (now - last.time < PROGRESS_LOG_INTERVAL) return
+    const deltaLoaded = loaded - last.loaded
+    const deltaTime = now - last.time
+    const percent = total > 0 ? (loaded / total * 100).toFixed(1) : '?'
+    let remainText = '未知'
+    const speed = deltaTime > 0 ? deltaLoaded / deltaTime : 0
+    if (speed > 0 && total > 0 && loaded < total) {
+      remainText = Math.ceil((total - loaded) / speed / 1000) + 's'
+    }
+    const loadedText = formatBytes(loaded)
+    const totalText = formatBytes(total)
+    console.info(`[videoCapturer] 下载进度 ${loadedText} / ${totalText} (${percent}%)，预计还需 ${remainText}`, url)
+    if (typeof videoCapturer.onProgress === 'function') {
+      videoCapturer.onProgress({ loadedText, totalText, percent, remainingText: remainText })
+    }
+    last = { loaded, time: now }
+  }
+}
+
 /* 通过 GM_xmlhttpRequest 拉取跨域视频字节，返回 Blob；超时会真正 abort 请求并 reject */
 function fetchVideoBlob (url, withCredentials, timeoutMs) {
   return new Promise(function (resolve, reject) {
@@ -56,12 +92,16 @@ function fetchVideoBlob (url, withCredentials, timeoutMs) {
       if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort()
       reject(new Error('Fetch timeout'))
     }, timeoutMs || FETCH_TIMEOUT_FALLBACK)
+    const logProgress = createProgressLogger(url)
     const gmRequest = gm({
       method: 'GET',
       url,
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href },
+      onprogress: (ev) => {
+        if (ev && typeof ev.loaded === 'number') logProgress(ev.loaded, ev.total || 0)
+      },
       onerror: (err) => {
         clearTimeout(timer)
         reject(err)
@@ -84,6 +124,52 @@ function drawVideoToCanvas (video) {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, canvas.width, canvas.height)
   return canvas
+}
+
+/* 从 blob 前 128 字节嗅探容器扩展名；webm/mkv 同用 EBML，靠 DocType 字符串区分。
+ * 嗅探不出时退回 blob.type，再退回 mp4。 */
+async function sniffVideoExt (blob) {
+  if (blob && blob.type) {
+    const t = blob.type.split('/')[1]
+    if (t && t !== 'octet-stream') return '.' + t
+  }
+  try {
+    const buf = await blob.slice(0, 128).arrayBuffer()
+    const text = new TextDecoder('latin1').decode(buf)
+    if (text.indexOf('webm') !== -1) return '.webm'
+    if (text.indexOf('matroska') !== -1) return '.mkv'
+    if (text.indexOf('ftyp') !== -1) return '.mp4'
+    if (text.indexOf('OggS') === 0) return '.ogv'
+    if (text.indexOf('RIFF') === 0) return '.avi'
+  } catch (e) {}
+  return '.mp4'
+}
+
+function pad2 (n) { return n < 10 ? '0' + n : '' + n }
+
+/* 文件名：优先使用页面标题（与截图命名规则一致，参考 "${document.title}_${currentTime}"），
+ * 追加可读时间戳避免冲突，扩展名由 sniffVideoExt 嗅探得到 */
+function getDownloadFileName (url, ext) {
+  const title = (document.title || '').trim()
+  const d = new Date()
+  const ts = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`
+  const base = title || 'video_' + Date.now()
+  return `${base}_${ts}${ext}`
+}
+
+/* 触发浏览器下载：把 blob 写成 objectUrl 后模拟点击 <a download>；需挂到 DOM 才在部分浏览器生效，
+ * 点击后随即移除；稍后 revoke objectUrl */
+async function saveBlobToLocal (blob, url) {
+  const ext = await sniffVideoExt(blob)
+  const objectUrl = URL.createObjectURL(blob)
+  const el = document.createElement('a')
+  el.href = objectUrl
+  el.download = getDownloadFileName(url, ext)
+  document.body.appendChild(el)
+  el.click()
+  el.remove()
+  /* 延迟 revoke，确保浏览器已接管下载 */
+  setTimeout(function () { URL.revokeObjectURL(objectUrl) }, 1000)
 }
 
 /* 缓存同一个视频源下载好的 blob 及其临时 video，保证一个影片只下载一次 */
@@ -118,6 +204,7 @@ function probeVideoSize (url, withCredentials) {
       responseType: 'arraybuffer',
       withCredentials,
       headers: { Referer: location.href, Range: 'bytes=0-0' },
+      /* 探测为 Range: bytes=0-0 的单字节请求，不挂 onprogress，避免误报"下载进度"提示 */
       onreadystatechange: function () {
         /* 服务器忽略 Range 返回完整 200 时，按 Content-Length 估算耗时并放宽超时，
          * 避免慢大文件在下载中途被 30s 超时 abort 后又要重下一次全量 GET */
@@ -211,12 +298,15 @@ function getCachedVideo (srcUrl, options) {
     return cached.promise || Promise.resolve(cached)
   }
 
-  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0 }
+  const record = { promise: null, blob: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0, saved: false }
   videoCache.set(srcUrl, record)
   record.promise = (options.existingBlob
     ? Promise.resolve(options.existingBlob)
     : fetchVideoBlob(srcUrl, options.withCredentials, options.timeoutMs))
-    .then(loadVideoFromBlob)
+    .then(function (blob) {
+      record.blob = blob
+      return loadVideoFromBlob(blob)
+    })
     .then(function (loaded) {
       record.videoEl = loaded.videoEl
       record.objectUrl = loaded.objectUrl
@@ -291,6 +381,12 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   try {
     await seekVideo(record.videoEl, video.currentTime || 0)
     const canvas = drawVideoToCanvas(record.videoEl)
+    /* 自动保存：开启 autoDownloadCachedVideo 且该视频尚未保存过时，才把视频保存到本地；
+     * 已缓存且已保存的记录，后续截图只截画面，不再重复下载视频 */
+    if (videoCapturer.autoDownloadCachedVideo && record.blob && !record.saved) {
+      saveBlobToLocal(record.blob, srcUrl)
+      record.saved = true
+    }
     return { canvas, title }
   } finally {
     record.inUse = Math.max(0, (record.inUse || 0) - 1)
@@ -300,6 +396,10 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
 const videoCapturer = {
   /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
   onFused: null,
+  /* 下载进度钩子：由宿主注入，接收 { loadedText, totalText, percent, remainingText } */
+  onProgress: null,
+  /* 跨CORS拉取完成后是否自动把视频保存到本地（由宿主根据配置注入，默认关闭，避免截图意外下载整个视频） */
+  autoDownloadCachedVideo: false,
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
@@ -395,6 +495,42 @@ const videoCapturer = {
         videoCapturer.previe(canvas, title)
       }
     }
+  },
+  /**
+   * 把已载入内存（videoCache）的视频源下载到本地，命中缓存直接复用 blob（不重新请求）。
+   * @param video {dom} -必选 video dom 标签
+   * @param onlyIfCached {boolean} -为 true 时仅在已缓存（已 fetch）的情况下下载，未缓存则不拉取
+   * @param withCredentials {boolean} -拉取时是否携带 Cookie 凭据，与截图路径 enhance.captureWithCredentials 保持一致
+   * @returns {boolean} 是否成功触发（仅判断缓存命中与否，异步下载结果见控制台）
+   */
+  downloadVideo (video, onlyIfCached, withCredentials) {
+    const srcUrl = getVideoSourceUrl(video)
+    if (!srcUrl) return false
+    if (!/^https?:/i.test(srcUrl)) return false
+    if (/\.m3u8($|\?)/i.test(srcUrl)) return false
+
+    const cached = videoCache.get(srcUrl)
+    if (cached && cached.blob) {
+      saveBlobToLocal(cached.blob, srcUrl)
+      cached.saved = true
+      return true
+    }
+    if (onlyIfCached) return false
+    /* 用户显式发起的下载：有意绕过 MAX_CACHE_SIZE 守卫（截图路径才拒绝缓存超大源），
+     * 超时随视频时长动态调整（与 captureViaBlob 一致） */
+    const duration = video.duration
+    const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK)
+    getCachedVideo(srcUrl, { withCredentials: !!withCredentials, cacheable: true, timeoutMs })
+      .then(function (record) {
+        if (record.blob) {
+          saveBlobToLocal(record.blob, srcUrl)
+          record.saved = true
+        }
+      })
+      .catch(function (err) {
+        console.error('[videoCapturer] 下载视频失败。', err)
+      })
+    return true
   }
 }
 

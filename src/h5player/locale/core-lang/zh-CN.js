@@ -116,6 +116,10 @@ export default {
   disableCaptureWithCredentials: '禁用跨CORS截图凭据',
   captureWithCredentialsDesc: '重拉视频源截图时是否携带 Cookie，公开 CDN 建议关闭',
   crossOriginCaptureDesc: '截图被 CORS 阻断时，重新拉取视频源截图',
+  downloadCachedVideo: '下载已缓存视频',
+  disableDownloadCachedVideo: '关闭下载已缓存视频',
+  downloadCachedVideoDesc: '跨CORS拉取完成后自动把视频保存到本地；开启时若已缓存则立即下载，命中缓存不重新请求',
+  downloadProgress: '视频下载中 {loaded} / {total}（{percent}%），预计还需 {remaining}',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',
