@@ -5664,7 +5664,8 @@ const monkeyMenu = {
   }
 };
 
-const version = '4.2.7';
+/* 版本号在构建时从 package.json 注入，勿手动修改 */
+const version = '4.3.5';
 
 function refreshPage(msg) {
   msg = msg || '配置已更改，马上刷新页面让配置生效？';
