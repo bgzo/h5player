@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/10/16 10:32
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 const original = {

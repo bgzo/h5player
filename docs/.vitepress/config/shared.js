@@ -22,7 +22,7 @@ export const shared = defineConfig({
     logo: '/assets/img/logo.png',
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/xxxily/h5player' }
+      { icon: 'github', link: 'https://github.com/bgzo/h5player' }
     ],
 
     search: {

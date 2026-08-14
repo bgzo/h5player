@@ -14,7 +14,7 @@ hero:
       link: https://h5player.anzz.site/zh
     - theme: alt
       text: GitHub
-      link: https://github.com/xxxily/h5player
+      link: https://github.com/bgzo/h5player
 
 features:
 - title: Broadly compatible.
@@ -41,4 +41,4 @@ PayPal: [paypal.me/BlazeLiu](https://paypal.me/BlazeLiu)
 ## Project Recommendation
 
 - [4000+ AI Open Source Projects List](https://hello-ai.anzz.site/home/categories.html)
-- [Hello-AI](https://github.com/xxxily/hello-ai)
+- [Hello-AI](https://github.com/bgzo/hello-ai)

@@ -26,7 +26,7 @@
 更详细的作品介绍请自行查阅下面的相关网址：
 
 - 官网地址：[h5player.anzz.site](https://h5player.anzz.site)  
-- GitHub地址：[github.com/xxxily/h5player](https://github.com/xxxily/h5player)  
+- GitHub地址：[github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
 - GreasyFork：[greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)  
 
 这里重点关注一下作品的相关数据：  

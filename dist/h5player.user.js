@@ -7,8 +7,8 @@
 // @name:ko      오디오 및 비디오 향상 스크립트: 무한 속도 조정, 배속 학습, 행복한 TV 시리즈 시청, 비디오 다운로드, 스크린샷 등을 지원합니다. "대부분의 웹사이트에 적용 가능"
 // @name:ru      Скрипт улучшения звука и видео: поддерживает бесконечную регулировку скорости и многое другое.
 // @name:de      Skript zur Audio- und Videoverbesserung: Unterstützt stufenlose Geschwindigkeitsanpassung und mehr.
-// @namespace    https://github.com/xxxily/h5player
-// @homepage     https://github.com/xxxily/h5player
+// @namespace    https://github.com/bgzo/h5player
+// @homepage     https://github.com/bgzo/h5player
 // @version      4.3.5
 // @description  视频增强脚本，支持所有H5音视频网站，例如：B站、抖音、腾讯视频、优酷、爱奇艺、西瓜视频、油管（YouTube）、微博视频、知乎视频、搜狐视频、网易公开课、百度网盘、阿里云盘、ted、instagram、twitter等。全程快捷键控制，支持：倍速播放/加速播放、视频画面截图、画中画、网页全屏、调节亮度、饱和度、对比度、自定义配置功能增强等功能，为你提供愉悦的在线视频播放体验。还有视频广告快进、在线教程/教育视频倍速快学、视频文件下载等能力
 // @description:en  Audio and Video enhancement script, supports all H5 video websites, such as: Bilibili, Douyin, Tencent Video, Youku, iQiyi, Xigua Video, YouTube, Weibo Video, Zhihu Video, Sohu Video, NetEase Open Course, Baidu network disk, Alibaba cloud disk, ted, instagram, twitter, etc. Full shortcut key control, support: double-speed playback/accelerated playback, video screenshots, picture-in-picture, full-screen web pages, adjusting brightness, saturation, contrast
@@ -186,7 +186,7 @@ function hackAttachShadow () {
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/10/16 10:32
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 const original = {
@@ -550,7 +550,7 @@ const mediaCore = (function () {
  * @version      0.0.1
  * @author       Blaze
  * @date         22/03/2019 22:46
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 /**
@@ -577,7 +577,7 @@ const isObj$1 = obj => isType(obj, 'object');
  * @version      0.0.1
  * @author       Blaze
  * @date         21/03/2019 23:10
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 /**
@@ -1077,7 +1077,7 @@ function throttle (fn, interval = 80) {
  * @version      0.0.1
  * @author       Blaze
  * @date         27/03/2019 15:52
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 /**
@@ -1399,7 +1399,7 @@ function isAudioElement (element) {
  * @version      0.0.1
  * @author       xxxily
  * @date         2023/03/06 14:29
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 
@@ -2766,11 +2766,11 @@ const taskConf = {
     subtractCurrentTime: 'button.button-nfplayerBackTen',
     /**
      * 使用netflix自身的调速，因为目前插件没法解决调速导致的服务中断问题
-     * https://github.com/xxxily/h5player/issues/234
-     * https://github.com/xxxily/h5player/issues/317
-     * https://github.com/xxxily/h5player/issues/381
-     * https://github.com/xxxily/h5player/issues/179
-     * https://github.com/xxxily/h5player/issues/147
+     * https://github.com/bgzo/h5player/issues/234
+     * https://github.com/bgzo/h5player/issues/317
+     * https://github.com/bgzo/h5player/issues/381
+     * https://github.com/bgzo/h5player/issues/179
+     * https://github.com/bgzo/h5player/issues/147
      */
     playbackRate: true,
     shortcuts: {
@@ -3440,7 +3440,7 @@ class FullScreen {
  * @version   0.0.1
  * @author    Blaze
  * @date      2019/9/21 12:03
- * @github    https://github.com/xxxily
+ * @github    https://github.com/bgzo
  */
 
 async function setClipboard (blob) {
@@ -4904,7 +4904,7 @@ const monkeyMsg = {
  * @version      0.0.1
  * @author       Blaze
  * @date         2019/11/21 上午11:56
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 
@@ -5022,7 +5022,7 @@ const crossTabCtl = {
  * @version      0.0.1
  * @author       Blaze
  * @date         2020/10/22 17:40
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 const win = typeof window === 'undefined' ? global : window;
@@ -5764,7 +5764,7 @@ const globalFunctional = {
   openAuthorHomePage: {
     title: i18n.t('aboutAuthor'),
     desc: i18n.t('aboutAuthor'),
-    fn: () => { openInTab('https://github.com/xxxily'); }
+    fn: () => { openInTab('https://github.com/bgzo'); }
   },
   openHotkeysPage: {
     title: i18n.t('hotkeysDocs'),
@@ -5780,12 +5780,12 @@ const globalFunctional = {
   openProjectGithub: {
     title: 'GitHub',
     desc: 'GitHub',
-    fn: () => openInTab('https://github.com/xxxily/h5player')
+    fn: () => openInTab('https://github.com/bgzo/h5player')
   },
   openIssuesPage: {
     title: i18n.t('issues'),
     desc: i18n.t('issues'),
-    fn: () => openInTab('https://github.com/xxxily/h5player/issues')
+    fn: () => openInTab('https://github.com/bgzo/h5player/issues')
   },
   openDonatePage: {
     title: i18n.t('donate'),
@@ -5836,7 +5836,7 @@ const globalFunctional = {
       if (randomZeroOrOne()) {
         openInTab('https://hello-ai.anzz.top/home/');
       } else {
-        openInTab('https://github.com/xxxily/hello-ai');
+        openInTab('https://github.com/bgzo/hello-ai');
       }
     }
   },
@@ -6153,7 +6153,7 @@ const globalFunctional = {
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/08/11 10:05
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 let monkeyMenuList = [
@@ -6674,7 +6674,7 @@ const mediaSource = (function () {
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/11/23 18:22
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 const Map$1 = window.Map;
@@ -11793,7 +11793,7 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('ffmpegScript'),
               desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/xxxily/ffmpeg-script'
+              url: 'https://github.com/bgzo/ffmpeg-script'
             }
           ]
         },
@@ -11977,7 +11977,7 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('ffmpegScript'),
               desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/xxxily/ffmpeg-script'
+              url: 'https://github.com/bgzo/ffmpeg-script'
             }
           ]
         }

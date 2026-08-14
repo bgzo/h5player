@@ -5,7 +5,7 @@
 Web Player Enhancement Script  
 
 - Official Website: [h5player.anzz.top](https://h5player.anzz.top)  
-- GitHub: [github.com/xxxily/h5player](https://github.com/xxxily/h5player)  
+- GitHub: [github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
 - GreasyFork: [greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
 - One-Click Installation: [h5player.anzz.top/h5player.user.js](https://h5player.anzz.top/h5player.user.js)
 
@@ -14,7 +14,7 @@ Web Player Enhancement Script
 ## Project Recommendation
 
 - [4000+ AI Open Source Projects List](https://hello-ai.anzz.site/home/categories.html)
-- [Hello-AI](https://github.com/xxxily/hello-ai)
+- [Hello-AI](https://github.com/bgzo/hello-ai)
 
 ## Introduction
 
@@ -193,7 +193,7 @@ Below is a list of some common websites for easy click testing:
 | AliYun Disk Audio Files | [https://aliyundrive.com/](https://aliyundrive.com/) |
 | Other Network Disk Audio Files | ...... |
 
-If the website you frequent is not well supported, feel free to raise [issues](https://github.com/xxxily/h5player/issues)  
+If the website you frequent is not well supported, feel free to raise [issues](https://github.com/bgzo/h5player/issues)  
 
 ## Other Notes
 
@@ -213,7 +213,7 @@ If the website you frequent is not well supported, feel free to raise [issues](h
 
 ## Update Log
 
-- [H5player ChangeLog](https://github.com/xxxily/h5player/blob/master/changeLog.md)
+- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/master/changeLog.md)
 
 ## Support the Author
 

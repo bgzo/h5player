@@ -145,7 +145,7 @@
 
 总的来说，这些第三方工具有其更擅长的领域，如果只是单纯的音视频合并，往往不是那么合适和方便  
 
-为了简化下载好的音视频文件合并过程，作者发布了[ffmpeg-script](https://github.com/xxxily/ffmpeg-script), 该脚本可实现：
+为了简化下载好的音视频文件合并过程，作者发布了[ffmpeg-script](https://github.com/bgzo/ffmpeg-script), 该脚本可实现：
 
 - 支持批量处理
 - 不重新编码，快速处理
@@ -154,7 +154,7 @@
 - 可随时终止，无需担心出错
 - 只需一条命令，简单快捷
 
-具体的使用说明，参见：[https://github.com/xxxily/ffmpeg-script](https://github.com/xxxily/ffmpeg-script)  
+具体的使用说明，参见：[https://github.com/bgzo/ffmpeg-script](https://github.com/bgzo/ffmpeg-script)  
 
 ::: tip
 脚本是免费、开源、跨平台的，不存在任何限制，可放心食用

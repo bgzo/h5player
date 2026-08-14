@@ -124,6 +124,6 @@ tar -xvf tampermonkey_stable.crx
 
 使用AdGuard客户端注入脚本的好处是：可以在任意的网页里执行脚本，从而实现对一些不支持Tampermonkey客户端的网页进行功能增强。  
 
-当然目前脚本在这方面的支持还不够完善，如果您有通过这种方式加载脚本的需求，可以通过[issues](https://github.com/xxxily/h5player/issues)告诉我，我会根据实际情况决定是否进行适配完善。  
+当然目前脚本在这方面的支持还不够完善，如果您有通过这种方式加载脚本的需求，可以通过[issues](https://github.com/bgzo/h5player/issues)告诉我，我会根据实际情况决定是否进行适配完善。  
 
 ![h5player_for_adguard](./img/h5player_for_adguard.jpg)

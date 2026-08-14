@@ -369,7 +369,7 @@ export const menuConfig = [
           {
             title: i18n.t('ffmpegScript'),
             desc: i18n.t('ffmpegScript'),
-            url: 'https://github.com/xxxily/ffmpeg-script'
+            url: 'https://github.com/bgzo/ffmpeg-script'
           }
         ]
       },
@@ -553,7 +553,7 @@ export const menuConfig = [
           {
             title: i18n.t('ffmpegScript'),
             desc: i18n.t('ffmpegScript'),
-            url: 'https://github.com/xxxily/ffmpeg-script'
+            url: 'https://github.com/bgzo/ffmpeg-script'
           }
         ]
       }

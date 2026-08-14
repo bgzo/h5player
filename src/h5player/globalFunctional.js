@@ -65,7 +65,7 @@ const globalFunctional = {
   openAuthorHomePage: {
     title: i18n.t('aboutAuthor'),
     desc: i18n.t('aboutAuthor'),
-    fn: () => { openInTab('https://github.com/xxxily') }
+    fn: () => { openInTab('https://github.com/bgzo') }
   },
   openHotkeysPage: {
     title: i18n.t('hotkeysDocs'),
@@ -81,12 +81,12 @@ const globalFunctional = {
   openProjectGithub: {
     title: 'GitHub',
     desc: 'GitHub',
-    fn: () => openInTab('https://github.com/xxxily/h5player')
+    fn: () => openInTab('https://github.com/bgzo/h5player')
   },
   openIssuesPage: {
     title: i18n.t('issues'),
     desc: i18n.t('issues'),
-    fn: () => openInTab('https://github.com/xxxily/h5player/issues')
+    fn: () => openInTab('https://github.com/bgzo/h5player/issues')
   },
   openDonatePage: {
     title: i18n.t('donate'),
@@ -137,7 +137,7 @@ const globalFunctional = {
       if (randomZeroOrOne()) {
         openInTab('https://hello-ai.anzz.top/home/')
       } else {
-        openInTab('https://github.com/xxxily/hello-ai')
+        openInTab('https://github.com/bgzo/hello-ai')
       }
     }
   },

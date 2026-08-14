@@ -3,7 +3,7 @@
  * @version   1.1.0
  * @author    Blaze
  * @date      2018/5/14 11:43
- * @github    https://github.com/xxxily
+ * @github    https://github.com/bgzo
  */
 
 // const fs = require('fs-extra')

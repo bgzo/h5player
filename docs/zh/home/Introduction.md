@@ -3,7 +3,7 @@
 网页播放器增强脚本  
 
 - 官网地址：[h5player.anzz.site](https://h5player.anzz.site)  
-- GitHub地址：[github.com/xxxily/h5player](https://github.com/xxxily/h5player)  
+- GitHub地址：[github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
 - Gitee 地址：[gitee.com/ankvps/h5player](https://gitee.com/ankvps/h5player)  
 - GreasyFork：[greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
 - 一键安装地址：[h5player.anzz.site/h5player.user.js](h5player.anzz.site/h5player.user.js)
@@ -186,7 +186,7 @@
 | 阿里云盘音频文件 | [https://aliyundrive.com/](https://aliyundrive.com/) |
 | 其他网盘音频文件 | ...... |
 
-如果你常去的网站支持不好欢迎提[issues](https://github.com/xxxily/h5player/issues)
+如果你常去的网站支持不好欢迎提[issues](https://github.com/bgzo/h5player/issues)
 
 ## 其他说明
 
@@ -195,7 +195,7 @@
 
 ## 更新日志
 
-- [H5player ChangeLog](https://github.com/xxxily/h5player/blob/master/changeLog.md)
+- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/master/changeLog.md)
 
 ## 支持作者
 

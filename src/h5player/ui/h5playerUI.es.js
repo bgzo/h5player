@@ -4384,7 +4384,7 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('ffmpegScript'),
               desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/xxxily/ffmpeg-script'
+              url: 'https://github.com/bgzo/ffmpeg-script'
             }
           ]
         },
@@ -4568,7 +4568,7 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('ffmpegScript'),
               desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/xxxily/ffmpeg-script'
+              url: 'https://github.com/bgzo/ffmpeg-script'
             }
           ]
         }

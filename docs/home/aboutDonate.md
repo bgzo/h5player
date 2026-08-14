@@ -26,7 +26,7 @@ In simple terms, the author's work is a webpage player enhancement script hosted
 For a more detailed introduction to the work, please refer to the following URLs:  
 
 - Official website: [h5player.anzz.top](https://h5player.anzz.top)
-- GitHub: [github.com/xxxily/h5player](https://github.com/xxxily/h5player)
+- GitHub: [github.com/bgzo/h5player](https://github.com/bgzo/h5player)
 - Greasy Fork: [greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
 
 Let's focus on some relevant data for the work:  

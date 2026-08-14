@@ -10,7 +10,7 @@ hero:
       link: /zh/home/quickStart
     - theme: alt
       text: GitHub
-      link: https://github.com/xxxily/h5player
+      link: https://github.com/bgzo/h5player
 
 features:
 - title: 兼容广泛
@@ -35,4 +35,4 @@ features:
 ## 项目推荐
 
 - [4000+个AI相关的开源项目](https://hello-ai.anzz.site/home/categories.html)
-- [Hello-AI](https://github.com/xxxily/hello-ai)
+- [Hello-AI](https://github.com/bgzo/hello-ai)

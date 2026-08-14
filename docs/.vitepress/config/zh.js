@@ -18,13 +18,13 @@ export const zh = defineConfig({
             text: '安装地址',
             items: [
               { text: 'Greasy Fork', link: 'https://greasyfork.org/zh-CN/scripts/381682', target: '_blank' },
-              { text: 'GitHub dist', link: 'https://raw.githubusercontent.com/xxxily/h5player/master/dist/h5player.js', target: '_blank' },
+              { text: 'GitHub dist', link: 'https://raw.githubusercontent.com/bgzo/h5player/master/dist/h5player.js', target: '_blank' },
             ]
           },
           {
             text: '反馈',
             items: [
-              { text: 'GitHub Issues', link: 'https://github.com/xxxily/h5player/issues', target: '_blank' },
+              { text: 'GitHub Issues', link: 'https://github.com/bgzo/h5player/issues', target: '_blank' },
               { text: 'Greasy Fork 反馈', link: 'https://greasyfork.org/zh-CN/scripts/381682/feedback', target: '_blank' },
             ]
           },
@@ -40,7 +40,7 @@ export const zh = defineConfig({
           {
             text: '其他',
             items: [
-              { text: 'GitHub.Dev', link: 'https://github.dev/xxxily/h5player', target: '_blank' },
+              { text: 'GitHub.Dev', link: 'https://github.dev/bgzo/h5player', target: '_blank' },
               { text: '赞赏码', link: 'https://h5player.anzz.site/assets/img/donate.png', target: '_blank' },
             ]
           },
@@ -108,11 +108,11 @@ export const zh = defineConfig({
       {
         text: '其它作品',
         items: [
-          { text: 'code-flux', link: 'https://github.com/xxxily/code-flux' },
-          { text: 'Hello-AI', link: 'https://github.com/xxxily/hello-ai' },
-          { text: 'ffmpeg-script', link: 'https://github.com/xxxily/ffmpeg-script' },
-          { text: 'local-appstore-for-1Panel', link: 'https://github.com/xxxily/local-appstore-for-1Panel' },
-          { text: 'broadcast-message', link: 'https://github.com/xxxily/broadcast-message' },
+          { text: 'code-flux', link: 'https://github.com/bgzo/code-flux' },
+          { text: 'Hello-AI', link: 'https://github.com/bgzo/hello-ai' },
+          { text: 'ffmpeg-script', link: 'https://github.com/bgzo/ffmpeg-script' },
+          { text: 'local-appstore-for-1Panel', link: 'https://github.com/bgzo/local-appstore-for-1Panel' },
+          { text: 'broadcast-message', link: 'https://github.com/bgzo/broadcast-message' },
         ]
       },
       {

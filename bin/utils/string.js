@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       Blaze
  * @date         21/03/2019 16:00
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 const trim = (function () {

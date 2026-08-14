@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/05/20 16:18
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 import { proxy, unProxy } from '../ajax-hook/xhr-proxy'

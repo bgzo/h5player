@@ -123,6 +123,6 @@ The [AdGuard](https://adguard.com) client also supports loading user scripts, an
 
 The benefit of injecting scripts via the AdGuard client is that the script can be executed on any webpage, enabling the enhancement of some webpages that do not support the Tampermonkey client.
 
-Currently, the script's support in this regard is not fully optimized. If you need to load the script in this way, please let me know via [issues](https://github.com/xxxily/h5player/issues), and I will decide whether to adapt and perfect it based on actual conditions.
+Currently, the script's support in this regard is not fully optimized. If you need to load the script in this way, please let me know via [issues](https://github.com/bgzo/h5player/issues), and I will decide whether to adapt and perfect it based on actual conditions.
 
 ![h5player_for_adguard](./img/h5player_for_adguard.jpg)

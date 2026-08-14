@@ -137,7 +137,7 @@ These tools can merge audio and video files but have their drawbacks:
 
 In general, these tools have their specialties, and for merging audio and video alone, they may not be the best or easiest options.
 
-To simplify the process, the author has released [ffmpeg-script](https://github.com/xxxily/ffmpeg-script), which can achieve:
+To simplify the process, the author has released [ffmpeg-script](https://github.com/bgzo/ffmpeg-script), which can achieve:
 
 - Batch processing support
 - Fast processing without re-encoding
@@ -146,7 +146,7 @@ To simplify the process, the author has released [ffmpeg-script](https://github.
 - Can be stopped at any time without worry
 - Simple and quick to use with a single command
 
-For detailed instructions, see: [https://github.com/xxxily/ffmpeg-script](https://github.com/xxxily/ffmpeg-script)
+For detailed instructions, see: [https://github.com/bgzo/ffmpeg-script](https://github.com/bgzo/ffmpeg-script)
 
 ::: tip
 The script is free, open-source, and cross-platform, with no restrictions, so you can use it with confidence.

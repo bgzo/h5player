@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/08/29 17:13
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 export default (name, opts = {}) => {

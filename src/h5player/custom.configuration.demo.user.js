@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         HTML5播放器自定义配置
 // @name:en      HTML5 player enhanced script custom configuration
-// @namespace    https://github.com/xxxily/h5player
-// @homepage     https://github.com/xxxily/h5player
+// @namespace    https://github.com/bgzo/h5player
+// @homepage     https://github.com/bgzo/h5player
 // @version      0.0.1
 // @description  HTML5播放器自定义配置，按需定制自己的功能
 // @description:en  HTML5 video player enhanced script custom configuration
 // @author       ankvps
-// @icon         https://cdn.jsdelivr.net/gh/xxxily/h5player@master/logo.png
+// @icon         https://cdn.jsdelivr.net/gh/bgzo/h5player@master/logo.png
 // @match        *://*/*
 // @grant        unsafeWindow
 // @run-at       document-start
@@ -373,11 +373,11 @@ const customTaskControlCenter = {
     subtractCurrentTime: 'button.button-nfplayerBackTen',
     /**
      * 使用netflix自身的调速，因为目前插件没法解决调速导致的服务中断问题
-     * https://github.com/xxxily/h5player/issues/234
-     * https://github.com/xxxily/h5player/issues/317
-     * https://github.com/xxxily/h5player/issues/381
-     * https://github.com/xxxily/h5player/issues/179
-     * https://github.com/xxxily/h5player/issues/147
+     * https://github.com/bgzo/h5player/issues/234
+     * https://github.com/bgzo/h5player/issues/317
+     * https://github.com/bgzo/h5player/issues/381
+     * https://github.com/bgzo/h5player/issues/179
+     * https://github.com/bgzo/h5player/issues/147
      */
     playbackRate: true,
     shortcuts: {

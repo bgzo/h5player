@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/11/07 09:26
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 function parseURL (url) {

@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       Blaze
  * @date         24/04/2019 14:20
- * @github       https://github.com/xxxily
+ * @github       https://github.com/bgzo
  */
 
 // import { uglify } from 'rollup-plugin-uglify'
