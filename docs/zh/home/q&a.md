@@ -145,21 +145,6 @@
 
 总的来说，这些第三方工具有其更擅长的领域，如果只是单纯的音视频合并，往往不是那么合适和方便  
 
-为了简化下载好的音视频文件合并过程，作者发布了[ffmpeg-script](https://github.com/bgzo/ffmpeg-script), 该脚本可实现：
-
-- 支持批量处理
-- 不重新编码，快速处理
-- 自动检测是否存在相关文件
-- 自动跳过已处理完成的文件
-- 可随时终止，无需担心出错
-- 只需一条命令，简单快捷
-
-具体的使用说明，参见：[https://github.com/bgzo/ffmpeg-script](https://github.com/bgzo/ffmpeg-script)  
-
-::: tip
-脚本是免费、开源、跨平台的，不存在任何限制，可放心食用
-:::
-
 ## 为什么视频截图不同网站表现不一致
 
 这是因为受 [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) 策略的影响，部分视频画面截取后，数据没法被直接下载回来  

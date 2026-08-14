@@ -12,8 +12,6 @@ Once enabled, external scripts can be used to define the plugin's shortcuts and 
 
 ::: tip
 Through custom configuration, most personalized needs can be met, but this requires you to have some programming skills.  
-For simple customizations such as defining your own shortcuts, you can join the user group and ask other members if you don't understand.  
-For complex functionalities, if you don't want to bother with customization, you might consider hiring the author for a paid customization service.  
 :::
 
 You can refer to the following script for customization: [https://greasyfork.org/zh-CN/scripts/455396](https://greasyfork.org/zh-CN/scripts/455396)  

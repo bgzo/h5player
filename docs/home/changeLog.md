@@ -95,9 +95,7 @@
 ## 4.0.1 [2024/02/19]
 
 * Added the @antifeature according to the community rules, being proactive
-* Resolved the issue of being reported because the free GPT-4 was promoted in carousel ads (it's honestly free!)
 * Currently, no plans to add a series of "features" with the @antifeature tag
-* But, some promotional links that won't affect the user experience might be added
 
 ## 4.0.0 [2024/02/15]
 
@@ -151,8 +149,6 @@
 * Fixed logical issues with shortcut keys compatible with win and mac
 
 ## 3.7.4 [2023/03/31]
-
-* Promoted the public interest ChatGPT
 
 ## 3.7.3 [2023/03/15]
 

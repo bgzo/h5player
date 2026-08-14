@@ -7,8 +7,7 @@ export const shared = defineConfig({
   title: 'h5player',
 
   head: [
-    ['link', { rel: 'icon', href: '/favicon.png' }],
-    ['script', { defer: true, src: 'https://msc.anzz.site/script.js', 'data-website-id': '77662e82-199d-42ea-ad10-c02922dd7336' }]
+    ['link', { rel: 'icon', href: '/favicon.png' }]
   ],
 
   lastUpdated: true,

@@ -48,23 +48,11 @@
 - 支持直播视频流提取
 - 支持配置式添加自定义功能
 
-## 交流群
-
-<br />
-
-| 加我拉你入群<br/>（注明来自：h5player） | Telegram群组<br/>（<a href="https://t.me/h5player" target="_blank">直接入群</a>） |
-| :----: | :----: |
-| <img src="https://h5player.anzz.site/assets/img/WeChat2.png?t=2022.11.21" width=280 /> |  <img src="https://h5player.anzz.site/assets/img/tg.jpg?t=2022.11.21" width=280 /> |
-
-<br />
-
 ## 功能定制
 
 脚本已经支持了大部分常用的功能，如果你有更多的需求，可以通过自定义配置来实现。  
 具体参考：[自定义配置](https://h5player.anzz.site/zh/home/customConfiguration.html)  
 <br />
-如果你不懂编程或不想折腾，又有相对复杂的功能需求，可以考虑找作者`付费定制`；  
-[通过上面的微信或者TG联系作者](#交流群)  
 
 ## 安装
 
@@ -197,18 +185,5 @@
 
 - [H5player ChangeLog](https://github.com/bgzo/h5player/blob/master/changeLog.md)
 
-## 支持作者
-
-如果我的努力给你带来了便利，请不要吝啬你的赞赏  
-
-[100万级安装量的开源作品，一年有多少打赏收入？](https://u.anzz.site/aboutdonate)  
-
-<p>
-  <a href="https://h5player.anzz.site" target="_blank">
-  <img src="https://h5player.anzz.site/assets/img/donate.png" width=480 alt="如果我的努力给你带来了便利，请不要吝啬你的赞赏" />
-  </a>
-</p>
-
-<br />
 
 <Vssue :title="$title" />

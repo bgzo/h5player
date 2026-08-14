@@ -25,20 +25,3 @@ features:
   details: The script code is completely open for everyone to monitor and review, rejecting malicious code and creating a safe and practical auxiliary script. It contributes to the open-source community within its capabilities.
 ---
 
-<br />
-<br />
-
-# Donate
-
-If my efforts have brought convenience to you, please do not hesitate to give your appreciation.  
-
-[How much in donations does an open-source work with a million installations receive in a year?](./home/aboutDonate.md)  
-
-PayPal: [paypal.me/BlazeLiu](https://paypal.me/BlazeLiu)  
-
-![If my efforts have brought convenience to you, please do not hesitate to give your appreciation.](/assets/img/donate.png)  
-
-## Project Recommendation
-
-- [4000+ AI Open Source Projects List](https://hello-ai.anzz.site/home/categories.html)
-- [Hello-AI](https://github.com/bgzo/hello-ai)

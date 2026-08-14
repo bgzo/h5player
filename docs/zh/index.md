@@ -21,18 +21,3 @@ features:
   details: 脚本代码完全开放，接受所有人的监督和审查，拒绝恶意代码，打造安全实用的辅助脚本，在自己力所能及的范围内为开源社区添砖加瓦
 ---
 
-<br />
-<br />
-
-# 赞
-
-如果我的努力给你带来了便利，请不要吝啬你的赞赏。  
-
-[100万级安装量的开源作品，一年有多少打赏收入？](./home/aboutDonate.md)  
-
-![如果我的努力给你带来了便利，请不要吝啬你的赞赏](/assets/img/donate.png)  
-
-## 项目推荐
-
-- [4000+个AI相关的开源项目](https://hello-ai.anzz.site/home/categories.html)
-- [Hello-AI](https://github.com/bgzo/hello-ai)

@@ -7,9 +7,7 @@ export const zh = defineConfig({
 
   themeConfig: {
     nav: [
-      { text: '4000+ AI开源项目列表', link: 'https://hello-ai.anzz.site/home/categories.html', target: '_blank' },
       { text: '文档中心', link: '/zh/home/quickStart' },
-      // { text: '支持作者', link: '/zh/home/rewardTheAuthor' },
       {
         text: '相关连接',
         ariaLabel: '相关连接',
@@ -41,23 +39,8 @@ export const zh = defineConfig({
             text: '其他',
             items: [
               { text: 'GitHub.Dev', link: 'https://github.dev/bgzo/h5player', target: '_blank' },
-              { text: '赞赏码', link: 'https://h5player.anzz.site/assets/img/donate.png', target: '_blank' },
             ]
           },
-        ]
-      },
-      {
-        text: 'anzz.site',
-        items: [
-          {
-            text: 'anzz',
-            items: [
-              { text: 'anzz.site', link: 'https://anzz.site', target: '_blank' },
-              { text: 'code-flux', link: 'https://code.anzz.site', target: '_blank' },
-              { text: 'h5player.anzz.site', link: 'https://h5player.anzz.site', target: '_blank' },
-              { text: 'broadcast-message', link: 'https://broadcast-message.anzz.site', target: '_blank' },
-            ]
-          }
         ]
       }
     ],
@@ -100,35 +83,7 @@ export const zh = defineConfig({
         text: '更多',
         items: [
           { text: '常见问题', link: '/zh/home/q&a' },
-          { text: '关于捐赠', link: '/zh/home/aboutDonate' },
-          { text: '支持作者', link: '/zh/home/rewardTheAuthor' },
           { text: '更新日志', link: '/zh/home/changeLog' },
-        ]
-      },
-      {
-        text: '其它作品',
-        items: [
-          { text: 'code-flux', link: 'https://github.com/bgzo/code-flux' },
-          { text: 'Hello-AI', link: 'https://github.com/bgzo/hello-ai' },
-          { text: 'ffmpeg-script', link: 'https://github.com/bgzo/ffmpeg-script' },
-          { text: 'local-appstore-for-1Panel', link: 'https://github.com/bgzo/local-appstore-for-1Panel' },
-          { text: 'broadcast-message', link: 'https://github.com/bgzo/broadcast-message' },
-        ]
-      },
-      {
-        text: 'anzz.site',
-        items: [
-          { text: 'anzz.site', link: 'https://anzz.site', target: '_blank' },
-          { text: 'code-flux', link: 'https://code.anzz.site', target: '_blank' },
-          { text: 'h5player.anzz.site', link: 'https://h5player.anzz.site', target: '_blank' },
-          { text: 'broadcast-message', link: 'https://broadcast-message.anzz.site', target: '_blank' },
-        ]
-      },
-      {
-        text: '其它推荐',
-        items: [
-          { text: 'Hello-AI', link: 'https://hello-ai.anzz.site', target: '_blank' },
-          { text: '4000+ AI开源项目列表', link: 'https://hello-ai.anzz.site/home/categories.html', target: '_blank' }
         ]
       }
     ]

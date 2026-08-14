@@ -6,9 +6,7 @@ export const en = defineConfig({
 
   themeConfig: {
     nav: [
-      { text: '4000+ AI open source projects', link: 'https://github.com/bgzo/hello-ai', target: '_blank' },
       { text: 'Docs', link: '/home/quickStart' },
-      // { text: 'Reward the Author', link: '/home/rewardTheAuthor' },
       {
         text: 'Related Links',
         ariaLabel: 'Related Links',
@@ -39,24 +37,8 @@ export const en = defineConfig({
             text: 'More',
             items: [
               { text: 'GitHub.Dev', link: 'https://github.dev/bgzo/h5player', target: '_blank' },
-              { text: 'Donate', link: 'https://h5player.anzz.top/assets/img/donate.png', target: '_blank' },
             ]
           },
-        ]
-      },
-      {
-        text: 'anzz.top',
-        items: [
-          {
-            text: 'anzz',
-            items: [
-              { text: 'anzz.top', link: 'https://anzz.top', target: '_blank' },
-              { text: 'ai.anzz.top', link: 'https://ai.anzz.top', target: '_blank' },
-              { text: 'code-flux.anzz.top', link: 'https://code-flux.anzz.top', target: '_blank' },
-              { text: 'h5player.anzz.top', link: 'https://h5player.anzz.top', target: '_blank' },
-              { text: 'broadcast-message.anzz.top', link: 'https://broadcast-message.anzz.top', target: '_blank' },
-            ]
-          }
         ]
       }
     ],
@@ -75,36 +57,7 @@ export const en = defineConfig({
         text: 'More',
         items: [
           { text: 'q&a', link: '/home/q&a' },
-          { text: 'About Donate', link: '/home/aboutDonate' },
-          { text: 'Reward the Author', link: '/home/rewardTheAuthor' },
           { text: 'Changelog', link: '/home/changeLog' },
-        ]
-      },
-      {
-        text: 'Other Projects',
-        items: [
-          { text: 'code-flux', link: 'https://github.com/bgzo/code-flux' },
-          { text: 'Hello-AI', link: 'https://github.com/bgzo/hello-ai' },
-          { text: 'ffmpeg-script', link: 'https://github.com/bgzo/ffmpeg-script' },
-          { text: 'local-appstore-for-1Panel', link: 'https://github.com/bgzo/local-appstore-for-1Panel' },
-          { text: 'broadcast-message', link: 'https://github.com/bgzo/broadcast-message' },
-        ]
-      },
-      {
-        text: 'anzz',
-        items: [
-          { text: 'anzz.top', link: 'https://anzz.top', target: '_blank' },
-          { text: 'ai.anzz.top', link: 'https://ai.anzz.top', target: '_blank' },
-          { text: 'code-flux.anzz.top', link: 'https://code-flux.anzz.top', target: '_blank' },
-          { text: 'h5player.anzz.top', link: 'https://h5player.anzz.top', target: '_blank' },
-          { text: 'broadcast-message', link: 'https://broadcast-message.anzz.top', target: '_blank' },
-        ]
-      },
-      {
-        text: 'Recommendation',
-        items: [
-          { text: 'Hello-AI', link: 'https://hello-ai.anzz.site', target: '_blank' },
-          { text: '4000+ AI open source projects', link: 'https://hello-ai.anzz.site/home/categories.html', target: '_blank' }
         ]
       }
     ]
