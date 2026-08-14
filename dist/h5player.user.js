@@ -3737,7 +3737,7 @@ function getCachedVideo (srcUrl, options) {
     return cached.promise || Promise.resolve(cached)
   }
 
-  const record = { promise: null, blob: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0 };
+  const record = { promise: null, blob: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0, saved: false };
   videoCache.set(srcUrl, record);
   record.promise = (options.existingBlob
     ? Promise.resolve(options.existingBlob)
@@ -3820,9 +3820,11 @@ async function captureViaBlob (video, title, enableCrossOriginCapture, withCrede
   try {
     await seekVideo(record.videoEl, video.currentTime || 0);
     const canvas = drawVideoToCanvas(record.videoEl);
-    /* 自动保存：开启 autoDownloadCachedVideo 时，跨CORS拉取完成后直接把视频保存到本地 */
-    if (videoCapturer.autoDownloadCachedVideo && record.blob) {
+    /* 自动保存：开启 autoDownloadCachedVideo 且该视频尚未保存过时，才把视频保存到本地；
+     * 已缓存且已保存的记录，后续截图只截画面，不再重复下载视频 */
+    if (videoCapturer.autoDownloadCachedVideo && record.blob && !record.saved) {
       saveBlobToLocal(record.blob, srcUrl);
+      record.saved = true;
     }
     return { canvas, title }
   } finally {
@@ -3949,6 +3951,7 @@ const videoCapturer = {
     const cached = videoCache.get(srcUrl);
     if (cached && cached.blob) {
       saveBlobToLocal(cached.blob, srcUrl);
+      cached.saved = true;
       return true
     }
     if (onlyIfCached) return false
@@ -3958,7 +3961,10 @@ const videoCapturer = {
     const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK);
     getCachedVideo(srcUrl, { withCredentials: !!withCredentials, cacheable: true, timeoutMs })
       .then(function (record) {
-        if (record.blob) saveBlobToLocal(record.blob, srcUrl);
+        if (record.blob) {
+          saveBlobToLocal(record.blob, srcUrl);
+          record.saved = true;
+        }
       })
       .catch(function (err) {
         console.error('[videoCapturer] 下载视频失败。', err);
