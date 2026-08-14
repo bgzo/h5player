@@ -207,11 +207,11 @@ const taskConf = {
     subtractCurrentTime: 'button.button-nfplayerBackTen',
     /**
      * 使用netflix自身的调速，因为目前插件没法解决调速导致的服务中断问题
-     * https://github.com/bgzo/h5player/issues/234
-     * https://github.com/bgzo/h5player/issues/317
-     * https://github.com/bgzo/h5player/issues/381
-     * https://github.com/bgzo/h5player/issues/179
-     * https://github.com/bgzo/h5player/issues/147
+     * https://github.com/xxxily/h5player/issues/234
+     * https://github.com/xxxily/h5player/issues/317
+     * https://github.com/xxxily/h5player/issues/381
+     * https://github.com/xxxily/h5player/issues/179
+     * https://github.com/xxxily/h5player/issues/147
      */
     playbackRate: true,
     shortcuts: {

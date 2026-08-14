@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       Blaze
  * @date         15/03/2019 11:54
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 import alias from '@rollup/plugin-alias'
 import json from '@rollup/plugin-json'

@@ -364,7 +364,7 @@ function hackAttachShadow () {
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/10/16 10:32
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 const original = {
@@ -728,7 +728,7 @@ const mediaCore = (function () {
  * @version      0.0.1
  * @author       Blaze
  * @date         22/03/2019 22:46
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 /**
@@ -755,7 +755,7 @@ const isObj$1 = obj => isType(obj, 'object');
  * @version      0.0.1
  * @author       Blaze
  * @date         21/03/2019 23:10
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 /**
@@ -1255,7 +1255,7 @@ function throttle (fn, interval = 80) {
  * @version      0.0.1
  * @author       Blaze
  * @date         27/03/2019 15:52
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 /**
@@ -1577,7 +1577,7 @@ function isAudioElement (element) {
  * @version      0.0.1
  * @author       xxxily
  * @date         2023/03/06 14:29
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 
@@ -2933,11 +2933,11 @@ const taskConf = {
     subtractCurrentTime: 'button.button-nfplayerBackTen',
     /**
      * 使用netflix自身的调速，因为目前插件没法解决调速导致的服务中断问题
-     * https://github.com/bgzo/h5player/issues/234
-     * https://github.com/bgzo/h5player/issues/317
-     * https://github.com/bgzo/h5player/issues/381
-     * https://github.com/bgzo/h5player/issues/179
-     * https://github.com/bgzo/h5player/issues/147
+     * https://github.com/xxxily/h5player/issues/234
+     * https://github.com/xxxily/h5player/issues/317
+     * https://github.com/xxxily/h5player/issues/381
+     * https://github.com/xxxily/h5player/issues/179
+     * https://github.com/xxxily/h5player/issues/147
      */
     playbackRate: true,
     shortcuts: {
@@ -3607,7 +3607,7 @@ class FullScreen {
  * @version   0.0.1
  * @author    Blaze
  * @date      2019/9/21 12:03
- * @github    https://github.com/bgzo
+ * @github    https://github.com/xxxily
  */
 
 async function setClipboard (blob) {
@@ -5046,7 +5046,7 @@ const monkeyMsg = {
  * @version      0.0.1
  * @author       Blaze
  * @date         2019/11/21 上午11:56
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 
@@ -5164,7 +5164,7 @@ const crossTabCtl = {
  * @version      0.0.1
  * @author       Blaze
  * @date         2020/10/22 17:40
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 const win = typeof window === 'undefined' ? global : window;
@@ -6242,7 +6242,7 @@ const globalFunctional = {
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/08/11 10:05
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 let monkeyMenuList = [
@@ -6761,7 +6761,7 @@ const mediaSource = (function () {
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/11/23 18:22
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 const Map$1 = window.Map;

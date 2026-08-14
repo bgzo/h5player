@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       Blaze
  * @date         2020/2/20 15:15
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 const fs = require('fs-extra')
 const glob = require('glob')

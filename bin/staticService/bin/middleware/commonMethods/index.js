@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       Blaze
  * @date         2020/3/23 13:56
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 const utils = require('../../../../utils')
 const commonMethods = [

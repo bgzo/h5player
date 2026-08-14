@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       Blaze
  * @date         2020/10/22 17:40
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 const win = typeof window === 'undefined' ? global : window

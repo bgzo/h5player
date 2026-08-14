@@ -4,7 +4,7 @@
  * @version      0.0.1
  * @author       xxxily
  * @date         2022/11/23 18:22
- * @github       https://github.com/bgzo
+ * @github       https://github.com/xxxily
  */
 
 const Map = window.Map

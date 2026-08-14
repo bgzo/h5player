@@ -3,7 +3,7 @@
  * @version   0.0.1
  * @author    Blaze
  * @date      2019/9/21 12:03
- * @github    https://github.com/bgzo
+ * @github    https://github.com/xxxily
  */
 
 async function setClipboard (blob) {
