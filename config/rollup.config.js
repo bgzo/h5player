@@ -19,9 +19,29 @@ import { fileURLToPath } from 'url'
 import utils from '../bin/utils.js'
 import confTree from './rollup.tree.config.js'
 import log from '../bin/log.js'
+import { readFileSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
+
+const resolve = p => {
+  return path.resolve(__dirname, '../', p)
+}
+
+/* package.json 是版本的唯一事实来源，构建时注入到 __H5PLAYER_VERSION__ 占位符 */
+const pkgVersion = JSON.parse(readFileSync(resolve('package.json'), 'utf-8')).version
+
+/* 将源码中的 __H5PLAYER_VERSION__ 占位符替换为 package.json 中的版本号 */
+const injectVersion = {
+  name: 'inject-version',
+  transform (code, id) {
+    if (!code.includes('__H5PLAYER_VERSION__')) { return null }
+    return {
+      code: code.replace(/__H5PLAYER_VERSION__/g, pkgVersion),
+      map: null
+    }
+  }
+}
 
 /* 日志记录 */
 const msgLog = log.create({
@@ -43,10 +63,6 @@ if (projectConf) {
   msgLog.error('无法正常运行脚本，不存在对应的项目配置')
 }
 
-const resolve = p => {
-  return path.resolve(__dirname, '../', p)
-}
-
 const merge = function (objA, objB) {
   const source = utils.clone(objA)
   const target = utils.clone(objB)
@@ -56,6 +72,7 @@ const merge = function (objA, objB) {
 /* rollup 打包的公共配置 */
 const baseConf = {
   plugins: [
+    injectVersion,
     json(),
     // https://github.com/jleeson/rollup-plugin-import-css
     css({

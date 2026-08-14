@@ -62,11 +62,6 @@ const globalFunctional = {
     desc: i18n.t('website'),
     fn: () => openInTab(getHomePage())
   },
-  openAuthorHomePage: {
-    title: i18n.t('aboutAuthor'),
-    desc: i18n.t('aboutAuthor'),
-    fn: () => { openInTab('https://github.com/xxxily') }
-  },
   openHotkeysPage: {
     title: i18n.t('hotkeysDocs'),
     desc: i18n.t('hotkeysDocs'),
@@ -81,35 +76,12 @@ const globalFunctional = {
   openProjectGithub: {
     title: 'GitHub',
     desc: 'GitHub',
-    fn: () => openInTab('https://github.com/xxxily/h5player')
+    fn: () => openInTab('https://github.com/bgzo/h5player')
   },
   openIssuesPage: {
     title: i18n.t('issues'),
     desc: i18n.t('issues'),
-    fn: () => openInTab('https://github.com/xxxily/h5player/issues')
-  },
-  openDonatePage: {
-    title: i18n.t('donate'),
-    desc: i18n.t('donate'),
-    fn: () => openDocsByPath('/home/rewardTheAuthor')
-  },
-  openAboutDonatePage: {
-    title: i18n.t('aboutDonate'),
-    desc: i18n.t('aboutDonate'),
-    fn: () => openDocsByPath('/home/aboutDonate')
-  },
-  openAiProjectsPage: {
-    title: i18n.t('aiProjects'),
-    desc: i18n.t('aiProjects'),
-    fn: () => openInTab('https://hello-ai.anzz.site/home/categories.html')
-  },
-  openAddGroupChatPage: {
-    title: i18n.t('addGroupChat'),
-    desc: i18n.t('addGroupChat'),
-    fn: () => {
-      const groupChatUrl = isChinese() ? 'https://h5player.anzz.site/zh/home/quickStart#%E4%BA%A4%E6%B5%81%E7%BE%A4' : 'https://h5player.anzz.top/home/quickStart#discussion-groups'
-      openInTab(groupChatUrl)
-    }
+    fn: () => openInTab('https://github.com/bgzo/h5player/issues')
   },
   openChangeLogPage: {
     title: i18n.t('changeLog'),
@@ -122,22 +94,7 @@ const globalFunctional = {
     fn: () => {
       const confirm = window.confirm(`${i18n.t('currentVersion')}「${version}」\n${i18n.t('checkVersion')}`)
       if (confirm) {
-        openInTab('https://greasyfork.org/zh-CN/scripts/381682/versions')
-      }
-    }
-  },
-  openRecommendPage: {
-    title: i18n.t('recommend'),
-    desc: i18n.t('recommend'),
-    fn: () => {
-      function randomZeroOrOne() {
-        return Math.floor(Math.random() * 2)
-      }
-
-      if (randomZeroOrOne()) {
-        openInTab('https://hello-ai.anzz.top/home/')
-      } else {
-        openInTab('https://github.com/xxxily/hello-ai')
+        openInTab('https://github.com/bgzo/h5player/releases')
       }
     }
   },
@@ -436,16 +393,6 @@ const globalFunctional = {
     }
   },
 
-  cleanRemoteHelperInfo: {
-    title: i18n.t('cleanRemoteHelperInfo'),
-    desc: i18n.t('cleanRemoteHelperInfo'),
-    fn: () => {
-      configManager.setGlobalStorage('recommendList', false)
-      configManager.setGlobalStorage('contactRemoteHelperSuccessTime', false)
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', false)
-      window.location.reload()
-    }
-  }
 }
 
 export default globalFunctional

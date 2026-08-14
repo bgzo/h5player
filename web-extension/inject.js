@@ -185,9 +185,11 @@ if (isExtension) { initGMFunctions(); }
 // @name:ko      오디오 및 비디오 향상 스크립트: 무한 속도 조정, 배속 학습, 행복한 TV 시리즈 시청, 비디오 다운로드, 스크린샷 등을 지원합니다. "대부분의 웹사이트에 적용 가능"
 // @name:ru      Скрипт улучшения звука и видео: поддерживает бесконечную регулировку скорости и многое другое.
 // @name:de      Skript zur Audio- und Videoverbesserung: Unterstützt stufenlose Geschwindigkeitsanpassung und mehr.
-// @namespace    https://github.com/xxxily/h5player
-// @homepage     https://github.com/xxxily/h5player
-// @version      4.3.3
+// @namespace    https://github.com/bgzo/h5player
+// @homepage     https://github.com/bgzo/h5player
+// @downloadURL  https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js
+// @updateURL    https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js
+// @version      4.3.5
 // @description  视频增强脚本，支持所有H5音视频网站，例如：B站、抖音、腾讯视频、优酷、爱奇艺、西瓜视频、油管（YouTube）、微博视频、知乎视频、搜狐视频、网易公开课、百度网盘、阿里云盘、ted、instagram、twitter等。全程快捷键控制，支持：倍速播放/加速播放、视频画面截图、画中画、网页全屏、调节亮度、饱和度、对比度、自定义配置功能增强等功能，为你提供愉悦的在线视频播放体验。还有视频广告快进、在线教程/教育视频倍速快学、视频文件下载等能力
 // @description:en  Audio and Video enhancement script, supports all H5 video websites, such as: Bilibili, Douyin, Tencent Video, Youku, iQiyi, Xigua Video, YouTube, Weibo Video, Zhihu Video, Sohu Video, NetEase Open Course, Baidu network disk, Alibaba cloud disk, ted, instagram, twitter, etc. Full shortcut key control, support: double-speed playback/accelerated playback, video screenshots, picture-in-picture, full-screen web pages, adjusting brightness, saturation, contrast
 // @description:zh  音视频增强脚本，支持所有H5视频网站，例如：B站、抖音、腾讯视频、优酷、爱奇艺、西瓜视频、油管（YouTube）、微博视频、知乎视频、搜狐视频、网易公开课、百度网盘、阿里云盘、ted、instagram、twitter等。全程快捷键控制，支持：倍速播放/加速播放、视频画面截图、画中画、网页全屏、调节亮度、饱和度、对比度、自定义配置功能增强等功能，为你提供愉悦的在线视频播放体验。还有视频广告快进、在线教程/教育视频倍速快学、视频文件下载等能力
@@ -216,6 +218,8 @@ if (isExtension) { initGMFunctions(); }
 // @grant        GM_getTabs
 // @grant        GM_openInTab
 // @grant        GM_setClipboard
+// @grant        GM_xmlhttpRequest
+// @connect       *
 // @run-at       document-start
 // @license      GPL
 // ==/UserScript==
@@ -2326,15 +2330,7 @@ const configManager = new ConfigManager({
     },
     ui: {
       enable: true,
-      alwaysShow: false,
-
-      /* UI模块的相关配置 */
-      mod: {
-        /* 默认禁用推荐模块 */
-        recommend: {
-          enable: false
-        }
-      }
+      alwaysShow: false
     },
     download: {
       enable: true
@@ -2351,6 +2347,10 @@ const configManager = new ConfigManager({
       allowAcousticGain: false,
       /* 是否开启跨域控制 */
       allowCrossOriginControl: true,
+      /* 截图被 CORS 污染时，是否重拉视频源绕开限制下载（默认关闭，开启后同一视频源只下载一次并缓存） */
+      allowCrossOriginCapture: false,
+      /* 重拉视频源时是否携带 Cookie 凭据（默认不携带，可通过菜单项 toggleCaptureWithCredentials 切换） */
+      captureWithCredentials: false,
       unfoldMenu: false
     },
     language: 'auto',
@@ -2372,13 +2372,12 @@ const configManager = new ConfigManager({
 });
 
 async function initUiConfigManager () {
-  const isUiConfigPage = location.href.indexOf('h5player.anzz.top/tools/json-editor') > -1 || location.href.indexOf('ankvps.gitee.io/h5player/tools/json-editor') > -1;
+  const isUiConfigPage = location.href.indexOf('h5player.anzz.top/tools/json-editor') > -1 || location.href.indexOf('h5player.anzz.site/tools/json-editor') > -1;
   const isUiConfigMode = location.href.indexOf('saveHandlerName=saveH5PlayerConfig') > -1;
   if (!isUiConfigPage || !isUiConfigMode) return
 
   function init (pageWindow) {
     const config = JSON.parse(JSON.stringify(configManager.getConfObj()));
-    delete config.recommendList;
     if (Array.isArray(config.hotkeys)) {
       /* 给hotkeys的各自项添加disabled选项，以便在界面侧可以快速禁用或启用某个项 */
       config.hotkeys.forEach(item => {
@@ -2395,9 +2394,7 @@ async function initUiConfigManager () {
 
     pageWindow.saveH5PlayerConfig = function (editor) {
       try {
-        const defConfig = configManager.getConfObj();
         const newConfig = editor.get();
-        newConfig.recommendList = defConfig.recommendList || [];
         configManager.setGlobalStorageByObj(newConfig);
         alert('配置已更新');
       } catch (e) {
@@ -3632,20 +3629,302 @@ async function setClipboard (blob) {
   }
 }
 
-var videoCapturer = {
+/* 获取视频的跨域源地址，用于回退下载时重新拉取 */
+function getVideoSourceUrl (video) {
+  const src = video.currentSrc || video.src;
+  if (!src) return ''
+  if (src.indexOf('//') === 0) return location.protocol + src
+  return src
+}
+
+/* 最小超时 30s */
+const FETCH_TIMEOUT_MIN = 30000;
+/* 时长未知（如直播）时的兜底超时 5 分钟 */
+const FETCH_TIMEOUT_FALLBACK = 300000;
+/* 下载失败后的熔断冷却时长：5 分钟内不再重试同一源 */
+const RETRY_COOLDOWN = 5 * 60 * 1000;
+
+/* 熔断错误：用于区分"可重试失败"与"被熔断拦截"，捕获后可据此提示用户 */
+class CaptureFusedError extends Error {}
+
+/* 记录最近一次失败的视频源（srcUrl -> 失败时间戳），用于冷却期内的熔断 */
+const failedSrc = new Map();
+
+/* 通过 GM_xmlhttpRequest 拉取跨域视频字节，返回 Blob；超时会真正 abort 请求并 reject */
+function fetchVideoBlob (url, withCredentials, timeoutMs) {
+  return new Promise(function (resolve, reject) {
+    const gm = window.GM_xmlhttpRequest;
+    if (typeof gm !== 'function') {
+      return reject(new Error('GM_xmlhttpRequest 未注册'))
+    }
+    const timer = setTimeout(function () {
+      /* 部分 GM 宿主无 abort() 或 gm() 返回 undefined，缺失时仅 reject（仍能靠熔断挡住后续请求） */
+      if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort();
+      reject(new Error('Fetch timeout'));
+    }, timeoutMs || FETCH_TIMEOUT_FALLBACK);
+    const gmRequest = gm({
+      method: 'GET',
+      url,
+      responseType: 'arraybuffer',
+      withCredentials,
+      headers: { Referer: location.href },
+      onerror: (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+      onload: (res) => {
+        clearTimeout(timer);
+        if (res.status >= 400) return reject(new Error('HTTP ' + res.status))
+        /* 省略 type，交给浏览器按容器字节嗅探（mp4/webm 均可靠，避免硬编码误判） */
+        const blob = new Blob([res.response]);
+        resolve(blob);
+      }
+    });
+  })
+}
+
+function drawVideoToCanvas (video) {
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return canvas
+}
+
+/* 缓存同一个视频源下载好的 blob 及其临时 video，保证一个影片只下载一次 */
+const videoCache = new Map();
+
+/* 大于 1G 的视频不缓存，避免内存占用过高 */
+const MAX_CACHE_SIZE = 1024 * 1024 * 1024;
+/* 超过 4 小时没有再次截图，自动释放缓存 */
+const CACHE_IDLE_TIMEOUT = 4 * 60 * 60 * 1000;
+
+/* 全量下载前探测视频大小：发 Range: bytes=0-0 请求，从 content-range 读取总大小；
+ * 若服务器忽略 Range 返回完整 200，则直接复用响应体作为 blob，避免二次全量下载。
+ * 返回 { size, blob }：size 为总大小（无法判断时为 0）；blob 非 null 表示已拿到完整内容。 */
+function probeVideoSize (url, withCredentials) {
+  return new Promise(function (resolve, reject) {
+    const gm = window.GM_xmlhttpRequest;
+    if (typeof gm !== 'function') return resolve({ size: 0, blob: null })
+    let gmRequest = null;
+    let timer = null;
+    const clearTimer = function () { if (timer) clearTimeout(timer); };
+    const armTimer = function (ms) {
+      clearTimer();
+      timer = setTimeout(function () {
+        if (gmRequest && typeof gmRequest.abort === 'function') gmRequest.abort();
+        reject(new Error('Probe timeout'));
+      }, ms);
+    };
+    armTimer(FETCH_TIMEOUT_MIN);
+    gmRequest = gm({
+      method: 'GET',
+      url,
+      responseType: 'arraybuffer',
+      withCredentials,
+      headers: { Referer: location.href, Range: 'bytes=0-0' },
+      onreadystatechange: function () {
+        /* 服务器忽略 Range 返回完整 200 时，按 Content-Length 估算耗时并放宽超时，
+         * 避免慢大文件在下载中途被 30s 超时 abort 后又要重下一次全量 GET */
+        if (gmRequest && gmRequest.readyState >= 2 && gmRequest.status === 200) {
+          const hdrs = typeof gmRequest.responseHeaders === 'string' ? gmRequest.responseHeaders : '';
+          const lm = hdrs.toLowerCase().match(/content-length:\s*(\d+)/);
+          if (lm) {
+            const size = parseInt(lm[1], 10);
+            const estMs = Math.max(FETCH_TIMEOUT_MIN, Math.min(Math.ceil(size / (100 * 1024)) * 1000, FETCH_TIMEOUT_FALLBACK));
+            armTimer(estMs);
+          }
+        }
+      },
+      onerror: () => {
+        clearTimer();
+        resolve({ size: 0, blob: null });
+      },
+      onload: (res) => {
+        clearTimer();
+        if (res.status >= 400) return resolve({ size: 0, blob: null })
+        const headers = typeof res.responseHeaders === 'string' ? res.responseHeaders : '';
+        const lower = headers.toLowerCase();
+        const rangeMatch = lower.match(/content-range:\s*bytes\s+0-0\/(\d+)/);
+        if (rangeMatch) return resolve({ size: parseInt(rangeMatch[1], 10), blob: null })
+        if (res.status === 200) {
+          /* 服务器忽略 Range 返回完整响应：复用该响应体，不再发全量下载请求 */
+          const blob = new Blob([res.response]);
+          return resolve({ size: blob.size, blob })
+        }
+        const lengthMatch = lower.match(/content-length:\s*(\d+)/);
+        if (lengthMatch) return resolve({ size: parseInt(lengthMatch[1], 10), blob: null })
+        resolve({ size: 0, blob: null });
+      }
+    });
+  })
+}
+
+/* 当切换到新视频源时，释放旧视频占用的内存，避免一个页面累计下载多部影片；
+ * 在途下载（record.promise 仍 pending）的记录不驱逐，避免其完成后 objectUrl/blob 泄漏 */
+function evictOtherVideos (keepUrl) {
+  videoCache.forEach(function (record, key) {
+    if (key !== keepUrl && record.promise === null && record.objectUrl && !record.inUse) {
+      URL.revokeObjectURL(record.objectUrl);
+      videoCache.delete(key);
+    }
+  });
+}
+
+/* 释放超过 CACHE_IDLE_TIMEOUT 未被使用的缓存记录 */
+function evictExpiredCache () {
+  const now = Date.now();
+  videoCache.forEach(function (record, key) {
+    if (now - record.lastUsed > CACHE_IDLE_TIMEOUT && !record.inUse) {
+      if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
+      videoCache.delete(key);
+    }
+  });
+  /* 顺带清掉已过冷却期的失败源记录，避免 failedSrc 无界增长 */
+  failedSrc.forEach(function (ts, key) {
+    if (now - ts >= RETRY_COOLDOWN) failedSrc.delete(key);
+  });
+}
+
+function loadVideoFromBlob (blob) {
+  return new Promise(function (resolve, reject) {
+    const objectUrl = URL.createObjectURL(blob);
+    const tempVideo = document.createElement('video');
+    tempVideo.crossOrigin = 'anonymous';
+    tempVideo.muted = true;
+    tempVideo.playsInline = true;
+    tempVideo.preload = 'auto';
+    tempVideo.src = objectUrl;
+    tempVideo.addEventListener('loadeddata', function () {
+      resolve({ videoEl: tempVideo, objectUrl });
+    }, { once: true });
+    tempVideo.addEventListener('error', function () {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('视频解码失败'));
+    }, { once: true });
+  })
+}
+
+/* 获取（或下载并缓存）视频源对应的临时 video；统一写入 videoCache 用于并发去重，
+ * record.cacheable 标记是否长期驻留，非缓存记录同样驻留至 evictOtherVideos/evictExpiredCache/pagehide 清理 */
+function getCachedVideo (srcUrl, options) {
+  options = options || {};
+  const cacheable = !!options.cacheable;
+  const cached = videoCache.get(srcUrl);
+  if (cached) {
+    cached.lastUsed = Date.now();
+    return cached.promise || Promise.resolve(cached)
+  }
+
+  const record = { promise: null, videoEl: null, objectUrl: '', lastUsed: Date.now(), cacheable, inUse: 0 };
+  videoCache.set(srcUrl, record);
+  record.promise = (options.existingBlob
+    ? Promise.resolve(options.existingBlob)
+    : fetchVideoBlob(srcUrl, options.withCredentials, options.timeoutMs))
+    .then(loadVideoFromBlob)
+    .then(function (loaded) {
+      record.videoEl = loaded.videoEl;
+      record.objectUrl = loaded.objectUrl;
+      record.promise = null;
+      failedSrc.delete(srcUrl);
+      return record
+    })
+    .catch(function (err) {
+      failedSrc.set(srcUrl, Date.now());
+      videoCache.delete(srcUrl);
+      throw err
+    });
+  return record.promise
+}
+
+function seekVideo (videoEl, targetTime) {
+  if (!targetTime || targetTime <= 0 || !videoEl.duration) return Promise.resolve()
+  return new Promise(function (resolve, reject) {
+    const onSeeked = function () {
+      /* seeked 后若首帧数据尚未就绪（readyState < HAVE_CURRENT_DATA），
+       * 需等 loadeddata 再绘制，避免截到黑帧 */
+      if (videoEl.readyState >= 2) return resolve()
+      videoEl.addEventListener('loadeddata', resolve, { once: true });
+    };
+    videoEl.addEventListener('seeked', onSeeked, { once: true });
+    videoEl.addEventListener('error', reject, { once: true });
+    videoEl.currentTime = Math.min(targetTime, videoEl.duration);
+  })
+}
+
+/* 方案2：重拉视频源为 blob 后，重新绘制一次，绕开 CORS 污染；同一视频源只下载一次 */
+async function captureViaBlob (video, title, enableCrossOriginCapture, withCredentials) {
+  const srcUrl = getVideoSourceUrl(video);
+  /* HLS/MSE/DASH 等非直链源无法通过重拉 blob 绕过 CORS（m3u8 为播放列表文本，
+   * 拉回后无法解码），且重拉会造成无谓的全量下载与解码报错，故直接短路退回预览 */
+  if (!srcUrl) return null
+  if (!/^https?:/i.test(srcUrl)) return null
+  if (/\.m3u8($|\?)/i.test(srcUrl)) return null
+
+  /* 熔断：冷却期内同一源不再重试，避免反复重试浪费流量 */
+  if (failedSrc.has(srcUrl) && (Date.now() - failedSrc.get(srcUrl)) < RETRY_COOLDOWN) {
+    console.warn('[captureViaBlob] fused source, skip until cooldown', srcUrl);
+    const fusedErr = new CaptureFusedError();
+    fusedErr.fused = true;
+    throw fusedErr
+  }
+
+  evictExpiredCache();
+  evictOtherVideos(srcUrl);
+
+  /* 仅缓存未命中时才探测大小：命中（含仍 pending 的在途记录）直接复用，避免每次截图多打一次 Range 请求；
+   * 超 1G 或无法探测大小的视频不缓存 */
+  const cached = videoCache.get(srcUrl);
+  let probedBlob = null;
+  let cacheable = false;
+  /* cacheable 仅未命中时生效：getCachedVideo 命中分支早返回并忽略 options.cacheable */
+  if (!cached) {
+    const probe = await probeVideoSize(srcUrl, withCredentials);
+    probedBlob = probe.blob;
+    cacheable = probe.size > 0 && probe.size <= MAX_CACHE_SIZE;
+  }
+
+  /* 超时随视频时长动态调整：max(30s, 时长/2)，时长未知时退回 5 分钟 */
+  const duration = video.duration;
+  const timeoutMs = Math.max(FETCH_TIMEOUT_MIN, (isFinite(duration) && duration > 0) ? duration * 1000 / 2 : FETCH_TIMEOUT_FALLBACK);
+
+  const record = await getCachedVideo(srcUrl, { withCredentials, cacheable, timeoutMs, existingBlob: probedBlob });
+  /* 下载成功后驱逐其它已落定的旧视频，避开在途记录，避免被驱逐后仍完成下载造成泄漏 */
+  evictOtherVideos(srcUrl);
+  /* 绘制期间自增 inUse，阻止其它 URL 的并发截图驱逐本记录 objectUrl，绘制完成后再放行 */
+  record.inUse = (record.inUse || 0) + 1;
+  try {
+    await seekVideo(record.videoEl, video.currentTime || 0);
+    const canvas = drawVideoToCanvas(record.videoEl);
+    return { canvas, title }
+  } finally {
+    record.inUse = Math.max(0, (record.inUse || 0) - 1);
+  }
+}
+
+const videoCapturer = {
+  /* 熔断提示钩子：被熔断拦截时由宿主注入提示逻辑（如 tips 弹窗） */
+  onFused: null,
   /**
    * 进行截图操作
    * @param video {dom} -必选 video dom 标签
+   * @param download {boolean} -是否下载截图
+   * @param title {string} -截图标题
+   * @param enableCrossOriginCapture {boolean} -canvas被CORS污染时，是否重拉视频源绕开限制下载
+   * @param withCredentials {boolean} -重拉视频源时是否携带 Cookie 凭据
    * @returns {boolean}
    */
-  capture (video, download, title) {
+  capture (video, download, title, enableCrossOriginCapture, withCredentials) {
     if (!video) return false
     const t = this;
     const currentTime = `${Math.floor(video.currentTime / 60)}'${(video.currentTime % 60).toFixed(3)}''`;
     const captureTitle = title || `${document.title}_${currentTime}`;
 
-    /* 截图核心逻辑 */
-    video.setAttribute('crossorigin', 'anonymous');
+    /* 截图核心逻辑
+     * 注意：不再对 video 设置 crossorigin="anonymous"——视频加载完成后设置该属性
+     * 只会强制视频以 CORS 模式重载，导致跨域源（如 anime1）反复报错并中断播放，
+     * 且对已污染的 canvas 无效（见 PR #1 审查） */
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -3653,7 +3932,7 @@ var videoCapturer = {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     if (download) {
-      t.download(canvas, captureTitle, video);
+      t.download(canvas, captureTitle, video, false, enableCrossOriginCapture, withCredentials);
     } else {
       t.previe(canvas, captureTitle);
     }
@@ -3676,7 +3955,7 @@ var videoCapturer = {
    * canvas 下载截取到的内容
    * @param canvas
    */
-  download (canvas, title, video) {
+  download (canvas, title, video, noFallback, enableCrossOriginCapture, withCredentials) {
     title = title || 'videoCapturer_' + Date.now();
 
     try {
@@ -3701,12 +3980,42 @@ var videoCapturer = {
         el.click();
       }, 'image/jpeg', 0.99);
     } catch (e) {
-      videoCapturer.previe(canvas, title);
-      console.error('视频源受CORS标识限制，无法直接下载截图，见：\n https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS');
+      console.error('视频源受CORS标识限制，无法直接下载截图，将尝试重拉视频源，见：\n https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS');
       console.error(video, e);
+
+      // 方案2：重拉视频源为 blob 后重新下载，替代原 newtab 预览（需在设置中开启）
+      if (enableCrossOriginCapture && !noFallback) {
+        captureViaBlob(video, title, enableCrossOriginCapture, withCredentials)
+          .then(function (result) {
+            if (!result) return videoCapturer.previe(canvas, title)
+            videoCapturer.download(result.canvas, result.title, video, true, enableCrossOriginCapture, withCredentials);
+          })
+          .catch(function (err) {
+            if (err && err.fused && typeof videoCapturer.onFused === 'function') {
+              videoCapturer.onFused();
+            }
+            console.error('重拉视频源失败，退回预览。', err);
+            videoCapturer.previe(canvas, title);
+          });
+      } else {
+        videoCapturer.previe(canvas, title);
+      }
     }
   }
 };
+
+/* 页面卸载时释放所有缓存：revoke objectURL、清空临时 video 解码、清空缓存 */
+window.addEventListener('pagehide', function () {
+  videoCache.forEach(function (record) {
+    if (record.objectUrl) URL.revokeObjectURL(record.objectUrl);
+    if (record.videoEl) {
+      record.videoEl.src = '';
+      record.videoEl.load();
+    }
+  });
+  videoCache.clear();
+  failedSrc.clear();
+}, { once: true });
 
 /**
  * 鼠标事件观测对象
@@ -3963,10 +4272,6 @@ var zhCN = {
   disableHotkeys: '禁用快捷键',
   enableMouseControl: '启用鼠标控制',
   disableMouseControl: '禁用鼠标控制',
-  donate: '👍请作者喝杯咖啡',
-  aboutDonate: '100万级安装量的作品，有多少打赏？',
-  aboutAuthor: '关于作者',
-  recommend: '❤️ 免费ChatGPT-4 ❤️',
   enableScript: '启用脚本',
   disableScript: '禁用脚本',
   disableCurrentInstanceGUI: '关闭当前图形用户界面',
@@ -4006,7 +4311,6 @@ var zhCN = {
   closeDebugMode: '关闭调试模式',
   unfoldMenu: '展开菜单',
   foldMenu: '折叠菜单',
-  addGroupChat: '💬添加群聊',
   speed: '倍速',
   capture: '截图',
   download: '下载',
@@ -4051,9 +4355,15 @@ var zhCN = {
   default: '默认',
   autoChoose: '自动选择',
   comingSoon: '更多功能正在完善中，敬请期待',
-  ffmpegScript: '音视频合并/转换脚本',
   autoGotoBufferedTime: '自动跟随跳转到缓冲区时间',
   disableAutoGotoBufferedTime: '禁用自动跟随跳转到缓冲区时间',
+  crossOriginCapture: '启用跨CORS截图',
+  disableCrossOriginCapture: '禁用跨CORS截图',
+  captureFused: '跨CORS截图已被熔断，请稍后重试',
+  captureWithCredentials: '跨CORS截图携带凭据',
+  disableCaptureWithCredentials: '禁用跨CORS截图凭据',
+  captureWithCredentialsDesc: '重拉视频源截图时是否携带 Cookie，公开 CDN 建议关闭',
+  crossOriginCaptureDesc: '截图被 CORS 阻断时，重新拉取视频源截图',
   mouse: {
     enable: '启用鼠标控制',
     disable: '禁用鼠标控制',
@@ -4112,9 +4422,6 @@ var enUS = {
   toggleHotkeysTemporarily: 'Toggle hotkeys temporarily',
   enableHotkeys: 'Enable hotkeys',
   disableHotkeys: 'Disable hotkeys',
-  donate: '👍Donate',
-  aboutDonate: 'How much the author has received?',
-  aboutAuthor: 'About the author',
   enableScript: 'Enable script',
   disableScript: 'Disable script',
   disableCurrentInstanceGUI: 'Close the current graphical user interface',
@@ -4154,7 +4461,6 @@ var enUS = {
   closeDebugMode: 'Turn off debug mode',
   unfoldMenu: 'Expand menu',
   foldMenu: 'Collapse menu',
-  addGroupChat: '💬Add chat group',
   speed: 'Speed',
   capture: 'Capture',
   download: 'Download',
@@ -4199,9 +4505,15 @@ var enUS = {
   default: 'Default',
   autoChoose: 'Auto choose',
   comingSoon: 'More features are being improved, stay tuned',
-  ffmpegScript: 'Audio and video merge/convert script',
   autoGotoBufferedTime: 'Automatically jump to the buffered time',
   disableAutoGotoBufferedTime: 'Disable automatic jump to the buffered time',
+  crossOriginCapture: 'Enable cross-CORS capture',
+  disableCrossOriginCapture: 'Disable cross-CORS capture',
+  captureFused: 'Cross-CORS capture is fused, please retry later',
+  captureWithCredentials: 'Cross-CORS capture with credentials',
+  disableCaptureWithCredentials: 'Disable cross-CORS capture credentials',
+  captureWithCredentialsDesc: 'Whether to send cookies when refetching the video source; off is recommended for public CDNs',
+  crossOriginCaptureDesc: 'Refetch the video source for the screenshot when it is blocked by CORS',
   mouse: {
     enable: 'Enable mouse control',
     disable: 'Disable mouse control',
@@ -4258,9 +4570,6 @@ var ru = {
   toggleHotkeysTemporarily: 'временно включить/отключить горячие клавиши',
   enableHotkeys: 'включить горячие клавиши',
   disableHotkeys: 'отключить горячие клавиши',
-  donate: '👍пожертвовать',
-  aboutDonate: 'Сколько автор получил?',
-  aboutAuthor: 'о авторе',
   enableScript: 'включить скрипт',
   disableScript: 'отключить скрипт',
   disableCurrentInstanceGUI: 'отключить текущий графический интерфейс пользователя',
@@ -4300,7 +4609,6 @@ var ru = {
   closeDebugMode: 'отключить режим отладки',
   unfoldMenu: 'развернуть меню',
   foldMenu: 'свернуть меню',
-  addGroupChat: '💬Добавить группу чата',
   speed: 'Скорость',
   capture: 'Захват',
   download: 'Скачать',
@@ -4345,9 +4653,15 @@ var ru = {
   default: 'По умолчанию',
   autoChoose: 'Автоматический выбор',
   comingSoon: 'Больше функций находится в процессе улучшения, следите за обновлениями',
-  ffmpegScript: 'Скрипт слияния/преобразования аудио и видео',
   autoGotoBufferedTime: 'Автоматически перейти к времени буфера',
   disableAutoGotoBufferedTime: 'Отключить автоматический переход к времени буфера',
+  crossOriginCapture: 'Включить снятие скриншотов через CORS',
+  disableCrossOriginCapture: 'Отключить снятие скриншотов через CORS',
+  captureFused: 'Снятие скриншота через CORS приостановлено, повторите позже',
+  captureWithCredentials: 'Снятие скриншота через CORS с учётными данными',
+  disableCaptureWithCredentials: 'Отключить учётные данные cross-CORS',
+  captureWithCredentialsDesc: 'Отправлять ли cookie при повторной загрузке источника; для публичных CDN рекомендуется выключить',
+  crossOriginCaptureDesc: 'Повторно загружать источник видео для скриншота при блокировке CORS',
   mouse: {
     enable: 'Включить управление мышью',
     disable: 'Отключить управление мышью',
@@ -4403,9 +4717,6 @@ var zhTW = {
   toggleHotkeysTemporarily: '臨時啟用/禁用快捷鍵',
   enableHotkeys: '啟用快捷鍵',
   disableHotkeys: '禁用快捷鍵',
-  donate: '👍讚賞',
-  aboutDonate: '100萬級安裝量的作品，有多少打賞？',
-  aboutAuthor: '關於作者',
   enableScript: '啟用腳本',
   disableScript: '禁用腳本',
   disableCurrentInstanceGUI: '關閉當前圖形用戶界面',
@@ -4445,7 +4756,6 @@ var zhTW = {
   closeDebugMode: '關閉調試模式',
   unfoldMenu: '展開菜單',
   foldMenu: '折疊菜單',
-  addGroupChat: '💬新增群聊',
   speed: '倍速',
   capture: '截圖',
   download: '下載',
@@ -4490,9 +4800,15 @@ var zhTW = {
   default: '默認',
   autoChoose: '自動選擇',
   comingSoon: '更多功能正在完善中，敬請期待',
-  ffmpegScript: '音視頻合併/轉換腳本',
   autoGotoBufferedTime: '自動跟隨跳轉到緩衝區時間',
   disableAutoGotoBufferedTime: '禁用自動跟隨跳轉到緩衝區時間',
+  crossOriginCapture: '啟用跨CORS截圖',
+  disableCrossOriginCapture: '禁用跨CORS截圖',
+  captureFused: '跨CORS截圖已被熔斷，請稍後重試',
+  captureWithCredentials: '跨CORS截圖攜帶憑證',
+  disableCaptureWithCredentials: '禁用跨CORS截圖憑證',
+  captureWithCredentialsDesc: '重拉影片來源截圖時是否攜帶 Cookie，公開 CDN 建議關閉',
+  crossOriginCaptureDesc: '截圖被 CORS 阻斷時，重新拉取影片來源截圖',
   mouse: {
     enable: '啟用鼠標控制',
     disable: '禁用鼠標控制',
@@ -5528,9 +5844,10 @@ const monkeyMenu = {
   }
 };
 
-const version = '4.2.7';
+/* 版本号在构建时从 package.json 注入，勿手动修改 */
+const version = '4.3.5';
 
-function refreshPage (msg) {
+function refreshPage(msg) {
   msg = msg || '配置已更改，马上刷新页面让配置生效？';
   const status = confirm(msg);
   if (status) {
@@ -5540,9 +5857,9 @@ function refreshPage (msg) {
 
 const isChinese = () => i18n.language().indexOf('zh') > -1;
 
-function getHomePage () {
+function getHomePage() {
   const homePageLinks = [
-    'https://h5player.anzz.top/zh/',
+    'https://h5player.anzz.site/zh/',
     'https://h5player.anzz.top'
   ];
 
@@ -5550,7 +5867,7 @@ function getHomePage () {
   return isChinese() ? homePageLinks[0] : homePageLinks[1]
 }
 
-function openDocsByPath (path) {
+function openDocsByPath(path) {
   if (typeof path !== 'string' || path.startsWith('http') === true) {
     return false
   }
@@ -5560,7 +5877,7 @@ function openDocsByPath (path) {
   }
 
   const chinese = isChinese();
-  const basePath = chinese ? 'https://h5player.anzz.top' : 'https://h5player.anzz.top';
+  const basePath = chinese ? 'https://h5player.anzz.site' : 'https://h5player.anzz.top';
   let url = basePath + path;
 
   /* 判断是否为中文环境，且link不是/zh开头，则自动加上/zh前缀 */
@@ -5589,17 +5906,12 @@ const globalFunctional = {
     desc: i18n.t('website'),
     fn: () => openInTab(getHomePage())
   },
-  openAuthorHomePage: {
-    title: i18n.t('aboutAuthor'),
-    desc: i18n.t('aboutAuthor'),
-    fn: () => { openInTab('https://u.anzz.top/xxxily'); }
-  },
   openHotkeysPage: {
     title: i18n.t('hotkeysDocs'),
     desc: i18n.t('hotkeysDocs'),
     fn: () => {
       const hotkeysDocs = [
-        'https://h5player.anzz.top/zh/home/quickStart#%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%88%97%E8%A1%A8',
+        'https://h5player.anzz.site/zh/home/quickStart#%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%88%97%E8%A1%A8',
         'https://h5player.anzz.top/home/quickStart#shortcut-key-list'
       ];
       openInTab(isChinese() ? hotkeysDocs[0] : hotkeysDocs[1]);
@@ -5608,30 +5920,12 @@ const globalFunctional = {
   openProjectGithub: {
     title: 'GitHub',
     desc: 'GitHub',
-    fn: () => openInTab('https://github.com/xxxily/h5player')
+    fn: () => openInTab('https://github.com/bgzo/h5player')
   },
   openIssuesPage: {
     title: i18n.t('issues'),
     desc: i18n.t('issues'),
-    fn: () => openInTab('https://github.com/xxxily/h5player/issues')
-  },
-  openDonatePage: {
-    title: i18n.t('donate'),
-    desc: i18n.t('donate'),
-    fn: () => openDocsByPath('/home/rewardTheAuthor')
-  },
-  openAboutDonatePage: {
-    title: i18n.t('aboutDonate'),
-    desc: i18n.t('aboutDonate'),
-    fn: () => openDocsByPath('/home/aboutDonate')
-  },
-  openAddGroupChatPage: {
-    title: i18n.t('addGroupChat'),
-    desc: i18n.t('addGroupChat'),
-    fn: () => {
-      const groupChatUrl = isChinese() ? 'https://h5player.anzz.top/zh/home/quickStart#%E4%BA%A4%E6%B5%81%E7%BE%A4' : 'https://h5player.anzz.top/home/quickStart#discussion-groups';
-      openInTab(groupChatUrl);
-    }
+    fn: () => openInTab('https://github.com/bgzo/h5player/issues')
   },
   openChangeLogPage: {
     title: i18n.t('changeLog'),
@@ -5644,22 +5938,7 @@ const globalFunctional = {
     fn: () => {
       const confirm = window.confirm(`${i18n.t('currentVersion')}「${version}」\n${i18n.t('checkVersion')}`);
       if (confirm) {
-        openInTab('https://greasyfork.org/zh-CN/scripts/381682/versions');
-      }
-    }
-  },
-  openRecommendPage: {
-    title: i18n.t('recommend'),
-    desc: i18n.t('recommend'),
-    fn: () => {
-      function randomZeroOrOne () {
-        return Math.floor(Math.random() * 2)
-      }
-
-      if (randomZeroOrOne()) {
-        openInTab('https://hello-ai.anzz.top/home/');
-      } else {
-        openInTab('https://github.com/xxxily/hello-ai');
+        openInTab('https://github.com/bgzo/h5player/releases');
       }
     }
   },
@@ -5667,10 +5946,9 @@ const globalFunctional = {
     title: i18n.t('openCustomConfigurationEditor'),
     desc: i18n.t('openCustomConfigurationEditor'),
     fn: () => {
-      // const jsoneditorUrl = isChinese()
-      //   ? 'https://u.anzz.top/h5pjsoneditorzh'
-      //   : 'https://u.anzz.top/h5pjsoneditor'
-      const jsoneditorUrl = 'https://u.anzz.top/h5pjsoneditor';
+      const jsoneditorUrl = isChinese()
+        ? 'https://h5player.anzz.site/tools/json-editor/index.html?mode=tree&saveHandlerName=saveH5PlayerConfig&expandAll=true&json='
+        : 'https://h5player.anzz.top/tools/json-editor/index.html?mode=tree&saveHandlerName=saveH5PlayerConfig&expandAll=true&json=';
       openInTab(jsoneditorUrl);
     }
   },
@@ -5959,16 +6237,6 @@ const globalFunctional = {
     }
   },
 
-  cleanRemoteHelperInfo: {
-    title: i18n.t('cleanRemoteHelperInfo'),
-    desc: i18n.t('cleanRemoteHelperInfo'),
-    fn: () => {
-      configManager.setGlobalStorage('recommendList', false);
-      configManager.setGlobalStorage('contactRemoteHelperSuccessTime', false);
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', false);
-      window.location.reload();
-    }
-  }
 };
 
 /*!
@@ -5987,7 +6255,6 @@ let monkeyMenuList = [
     ...globalFunctional.openIssuesPage,
     disable: !configManager.get('enhance.unfoldMenu')
   },
-  { ...globalFunctional.openDonatePage },
   {
     ...globalFunctional.toggleScriptEnableState
   },
@@ -7033,106 +7300,6 @@ const windowSandbox = new Proxy({}, {
     return window[key]
   }
 });
-
-/**
- * 跟官网进行互动，以实现以下功能
- * 1、新版本检测 (待实现)
- * 2、脚本安装使用情况统计
- * 3、获取最新的推荐信息
- */
-
-
-const remoteHelperUrl = 'https://h5player.anzz.top/h5p-helper/index.html';
-
-const remoteHelper = {
-  init () {
-    this.remoteHandler();
-
-    /* 减少重复加载和防止循环嵌套 */
-    if (isInIframe()) { return false }
-
-    if (!configManager.isGlobalStorageUsable()) { return false }
-
-    const contactRemoteHelperSuccessTime = configManager.getGlobalStorage('contactRemoteHelperSuccessTime');
-    let lastContactRemoteHelperTime = configManager.getGlobalStorage('lastContactRemoteHelperTime');
-    if (!lastContactRemoteHelperTime) {
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', Date.now());
-      lastContactRemoteHelperTime = Date.now();
-    }
-
-    /**
-     * 减少跟远程助手的握手次数
-     * 12小时内有成功握手过的话，就不再重复握手
-     * 最少间隔1分钟才进行下一次握手
-     */
-    const syncInterval = configManager.getGlobalStorage('remoteHelperSyncInterval') || 1000 * 60 * 60 * 12;
-    if (contactRemoteHelperSuccessTime && Date.now() - contactRemoteHelperSuccessTime < syncInterval) { return false }
-    if (Date.now() - lastContactRemoteHelperTime < 1000 * 60) { return false }
-
-    this.establishRemoteConnection();
-  },
-
-  establishRemoteConnection () {
-    const lastSucTime = configManager.getGlobalStorage('contactRemoteHelperSuccessTime') || '0';
-    const timeStr = new Date().toISOString().split('T')[0].replace(/-/g, '') + new Date().getHours() + '' + new Date().getMinutes();
-    const iframe = document.createElement('iframe');
-    iframe.src = `${remoteHelperUrl}?t=${timeStr}&v=${version}&lst=${lastSucTime}`;
-    iframe.style.cssText = 'width:0; height:0; border:none; visibility:hidden; opacity:0;';
-    const insertIframe = () => {
-      document.body.appendChild(iframe);
-      configManager.setGlobalStorage('lastContactRemoteHelperTime', Date.now());
-    };
-
-    if (!document.body || !document.body.appendChild) {
-      window.addEventListener('DOMContentLoaded', insertIframe, { once: true });
-    } else {
-      insertIframe();
-    }
-
-    /* 不管握手成功与否，10秒后移除iframe，主动终止跟远程助手的连接 */
-    setTimeout(() => { document.body.removeChild(iframe); }, 10000);
-  },
-
-  async remoteHandler () {
-    if (!location.href.startsWith(remoteHelperUrl) || !configManager.isGlobalStorageUsable()) { return false }
-
-    function syncRemoteData (pageWindow) {
-      if (pageWindow.recommendList) {
-        configManager.setGlobalStorage('recommendList', pageWindow.recommendList);
-      }
-
-      /* 待增加版本对比判断逻辑 */
-      if (pageWindow.remoteVersion) {
-        configManager.setGlobalStorage('remoteVersion', pageWindow.remoteVersion);
-      }
-
-      if (pageWindow.remoteHelperSyncInterval) {
-        configManager.setGlobalStorage('remoteHelperSyncInterval', pageWindow.remoteHelperSyncInterval);
-      }
-
-      configManager.setGlobalStorage('contactRemoteHelperSuccessTime', Date.now());
-    }
-
-    let checkCount = 0;
-    function checkRemoteHelperStatus (pageWindow) {
-      if (!Array.isArray(pageWindow.recommendList)) {
-        if (checkCount < 30) {
-          setTimeout(() => {
-            checkCount++;
-            checkRemoteHelperStatus(pageWindow);
-          }, 200);
-        }
-
-        return
-      }
-
-      syncRemoteData(pageWindow);
-    }
-
-    const pageWindow = await getPageWindow();
-    pageWindow && checkRemoteHelperStatus(pageWindow);
-  }
-};
 
 /**
   * 检测当前页面是否为 Cloudflare 的 challenge 页面
@@ -11511,12 +11678,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           desc: i18n.t('moreActions'),
           subMenu: [
             {
-              title: 'Clean remote helper info',
-              desc: 'Clean remote helper info',
-              action: 'cleanRemoteHelperInfo',
-              disabled: !debug$1.isDebugMode()
-            },
-            {
               title: 'Print Player info',
               desc: 'Print Player info',
               action: 'printPlayerInfo',
@@ -11531,6 +11692,16 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
             {
               title: i18n.t('comingSoon'),
               desc: i18n.t('comingSoon')
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('crossOriginCapture')}`,
+              desc: i18n.t('crossOriginCaptureDesc'),
+              action: 'toggleCrossOriginCapture'
+            },
+            {
+              title: `${i18n.t('toggleStates')} ${i18n.t('captureWithCredentials')}`,
+              desc: i18n.t('captureWithCredentialsDesc'),
+              action: 'toggleCaptureWithCredentials'
             }
           ]
         },
@@ -11602,11 +11773,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               title: `${i18n.t('toggleStates')} ${i18n.t('autoGotoBufferedTime')}`,
               desc: `${i18n.t('toggleStates')} ${i18n.t('autoGotoBufferedTime')}`,
               action: 'toggleAutoGotoBufferedTime'
-            },
-            {
-              title: i18n.t('ffmpegScript'),
-              desc: i18n.t('ffmpegScript'),
-              url: 'https://u.anzz.top/ffmpegscript'
             }
           ]
         },
@@ -11746,11 +11912,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               args: ''
             },
             {
-              ...globalFunctional.openAddGroupChatPage,
-              action: 'openAddGroupChatPage',
-              args: ''
-            },
-            {
               ...globalFunctional.openChangeLogPage,
               action: 'openChangeLogPage',
               args: ''
@@ -11759,33 +11920,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               ...globalFunctional.openCheckVersionPage,
               action: 'openCheckVersionPage',
               args: ''
-            },
-            {
-              ...globalFunctional.openDonatePage,
-              action: 'openDonatePage',
-              args: ''
-            },
-            {
-              ...globalFunctional.openAboutDonatePage,
-              action: 'openAboutDonatePage',
-              args: ''
-            },
-            {
-              ...globalFunctional.openAuthorHomePage,
-              action: 'openAuthorHomePage',
-              args: ''
-            }
-          ]
-        },
-        {
-          title: i18n.t('more'),
-          desc: i18n.t('more'),
-          disabled: true,
-          subMenu: [
-            {
-              title: i18n.t('ffmpegScript'),
-              desc: i18n.t('ffmpegScript'),
-              url: 'https://u.anzz.top/ffmpegscript'
             }
           ]
         }
@@ -11890,129 +12024,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
   function createLogoModTemplate () {
     const homepage = globalFunctional.getHomePageLink.fn();
     return `<a class="h5p-logo-mod" href="${homepage}" target="_blank">h5player</a>`
-  }
-
-  const defaultRecommendList = [
-    {
-      title: '【h5player】使用手册',
-      url: 'https://u.anzz.top/h5pmanual',
-      priority: 99,
-      i18n: {
-        en: {
-          title: '【h5player】User Manual'
-        }
-      }
-    },
-    {
-      title: '【h5player】音视频一键合并工具，无需二次编码',
-      desc: '将h5player下载到的音视频文件自动合并成一个文件，不经过二次编码，可快速合并',
-      url: 'https://u.anzz.top/ffmpegscript',
-      i18n: {
-        en: {
-          title: '【h5player】Audio and video merge tool, no secondary coding required',
-          desc: 'Automatically merge the audio and video files downloaded by h5player into one file without secondary coding, which can be quickly merged'
-        }
-      }
-    },
-    {
-      title: '【Hello-AI】抢走你工作的不是AI，而是掌握使用AI工具的人',
-      url: 'https://u.anzz.top/ai',
-      i18n: {
-        en: {
-          title: '【Hello-AI】It\'s not AI that takes away your job, but the person who knows how to use AI tools'
-        }
-      }
-    }
-  ];
-
-  function createRecommendModTemplate (refDom) {
-    const showMod = isGlobalStorageUsable && configManager$1.getGlobalStorage('ui.mod.recommend.enable');
-    if (!showMod) { return '' }
-
-    const refWidth = refDom.offsetWidth;
-    if (refWidth < 500) { return '' }
-
-    let recommendList = configManager$1.getGlobalStorage('recommendList') || defaultRecommendList;
-    recommendList = recommendList.filter(item => !item.disabled);
-
-    const curLang = i18n.language() || '';
-    /* 兼容各种可能的语言配置写法 */
-    const curLang2 = curLang.replace('-', '');
-    const curLang3 = curLang.replace('-', '_');
-    const curLang4 = curLang.split('-')[0];
-
-    /* 根据当前的language和recommendList的languages配置过滤出符合当前语言的recommendList */
-    recommendList = recommendList.filter(item => {
-      const lang = item.lang || item.language || item.languages;
-      if (lang) {
-        return i18n.isMatchCurLang(lang)
-      } else {
-        return true
-      }
-    });
-
-    if (!recommendList.length) { return '' }
-
-    /* 从recommendList里随机取5条数据，多余的不予以展示 */
-    if (recommendList.length > 5) { recommendList = recommendList.sort(() => Math.random() - 0.5).slice(0, 5); }
-
-    /* 根据recommendList里的priority字段进行排序，priority值越大越靠前 */
-    recommendList = recommendList.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-
-    const recommendHtml = recommendList.map(item => {
-      let title = item.title || '';
-      let desc = item.desc || '';
-      let url = item.url || '';
-
-      if (item.i18n) {
-        const i18nInfo = item.i18n[`${curLang}`] || item.i18n[`${curLang2}`] || item.i18n[`${curLang3}`] || item.i18n[`${curLang4}`];
-        if (i18nInfo) {
-          title = i18nInfo.title || title;
-          desc = i18nInfo.desc || desc;
-          url = i18nInfo.url || url;
-        }
-      }
-
-      return `<a class="h5p-recommend-item" href="${url}" title="${desc}" target="_blank">${title}</a>`
-    }).join('');
-
-    return `<div class="h5p-recommend-mod" >${recommendHtml}</div>`
-  }
-
-  /**
-   * 注册Recommend切换逻辑，每4s检测一次当前哪个h5p-recommend-item上有h5p-recommend-item__active，然后将h5p-recommend-item__active切换到下一个元素，如此往复
-   * 当鼠标移动到recommendWrap的时候停止切换，移开后继续切换
-   */
-  function registerRecommendModToggle (recommendWrap, reRender) {
-    if (!reRender && (!recommendWrap || recommendWrap.__h5pRecommendModRegistered__)) { return }
-
-    let recommendIndex = 0;
-    recommendWrap.__stopToggle__ = false;
-
-    const toggleRecommend = () => {
-      if (recommendWrap.__stopToggle__) { return }
-      const recommendItems = recommendWrap.querySelectorAll('.h5p-recommend-item');
-      recommendItems.forEach((item, index) => {
-        if (index === recommendIndex) {
-          item.classList.add('h5p-recommend-item__active');
-        } else {
-          item.classList.remove('h5p-recommend-item__active');
-        }
-      });
-
-      recommendIndex = (recommendIndex + 1) % recommendItems.length;
-    };
-
-    toggleRecommend();
-
-    clearInterval(recommendWrap.__h5pRecommendModInterval__);
-    recommendWrap.__h5pRecommendModInterval__ = setInterval(toggleRecommend, 3000);
-    if (!reRender) {
-      recommendWrap.addEventListener('mouseenter', () => { recommendWrap.__stopToggle__ = true; });
-      recommendWrap.addEventListener('mouseleave', () => { recommendWrap.__stopToggle__ = false; });
-    }
-
-    recommendWrap.__h5pRecommendModRegistered__ = true;
   }
 
   /**
@@ -12195,9 +12206,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           <div class="h5p-logo-wrap">
             ${createLogoModTemplate()}
           </div>
-          <div class="h5p-recommend-wrap">
-            <div style="overflow:hidden">${createRecommendModTemplate(element)}</div>
-          </div>
           <div class="h5p-menu-wrap">
             ${menuTemplate}
           </div>
@@ -12205,8 +12213,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
         </sl-popup>
       </div>
     `, document.body)[0];
-
-      setTimeout(() => { registerRecommendModToggle(popupWrap.querySelector('.h5p-recommend-wrap')); }, 100);
 
       const popup = popupWrap.querySelector('sl-popup');
 
@@ -12271,21 +12277,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
 
       /* 油管首次渲染会莫名其妙的出错，所以此处延迟一段时间重新渲染一次菜单 */
       setTimeout(() => { reRenderMenuMod(); }, 400);
-
-      /* 重新渲染h5p-recommend-mod对应的推荐模块，如果位置不够则对隐藏该模块 */
-      function reRenderRecommendMod () {
-        const recommendWrap = popupWrap.querySelector('.h5player-popup-content .h5p-recommend-wrap');
-        const recommendMod = popupWrap.querySelector('.h5player-popup-content .h5p-recommend-wrap>div');
-        if (recommendWrap && recommendMod) {
-          recommendWrap.removeChild(recommendMod);
-
-          const newRecommendModTemplate = `<div style="overflow:hidden">${createRecommendModTemplate(element)}</div>`;
-          parseHTML(newRecommendModTemplate, recommendWrap);
-
-          registerRecommendModToggle(recommendWrap, true);
-          // debug.log('[h5playerUI][popup][reRenderRecommendMod]')
-        }
-      }
 
       const activeClass = 'h5player-popup-active';
       const fullActiveClass = 'h5player-popup-full-active';
@@ -12467,7 +12458,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           if (newRect.width !== popup.oldRect.width) {
             popup.oldRect = newRect;
             reRenderMenuMod();
-            reRenderRecommendMod();
           }
         }
       });
@@ -13922,6 +13912,22 @@ const h5Player = {
     t.tips(t.autoGotoBufferedTime ? i18n.t('autoGotoBufferedTime') : i18n.t('disableAutoGotoBufferedTime'));
   },
 
+  /* 切换：截图被CORS污染时，是否重拉视频源绕开限制下载 */
+  toggleCrossOriginCapture () {
+    const t = this;
+    const enable = !configManager.get('enhance.allowCrossOriginCapture');
+    configManager.setGlobalStorage('enhance.allowCrossOriginCapture', enable);
+    t.tips(enable ? i18n.t('crossOriginCapture') : i18n.t('disableCrossOriginCapture'));
+  },
+
+  /* 切换：跨 CORS 重拉视频源时是否携带 Cookie 凭据 */
+  toggleCaptureWithCredentials () {
+    const t = this;
+    const enable = !configManager.get('enhance.captureWithCredentials');
+    configManager.setGlobalStorage('enhance.captureWithCredentials', enable);
+    t.tips(enable ? i18n.t('captureWithCredentials') : i18n.t('disableCaptureWithCredentials'));
+  },
+
   /**
    * 切换画中画功能
    */
@@ -14089,9 +14095,19 @@ const h5Player = {
         parentNode.setAttribute('style-backup', backupSty);
         backupStyle = defStyle;
       } else {
-        /* 如果defStyle被外部修改了，则需要更新备份样式 */
+        /* 如果defStyle被外部修改了，则需要更新备份样式（剔除tips逻辑自身写入的样式，避免备份被污染） */
         if (defStyle && !defStyle.includes('style-backup')) {
-          backupStyle = defStyle;
+          const defStyleObj = inlineStyleToObj(defStyle);
+          /* 仅当position为tips逻辑写入时才剔除 */
+          if (['static', 'inherit', 'initial', 'unset', ''].includes(parentNode.getAttribute('def-position') || '')) {
+            delete defStyleObj.position;
+          }
+          delete defStyleObj['min-width'];
+          delete defStyleObj['min-height'];
+          backupStyle = objToInlineStyle(defStyleObj);
+        } else if (!defStyle) {
+          /* 容器样式已还原为空时，备份也置空，避免还原时残留占位样式 */
+          backupStyle = '';
         }
       }
 
@@ -14160,9 +14176,8 @@ const h5Player = {
         // 隐藏提示框和还原样式
         style.opacity = 0;
         style.display = 'none';
-        if (backupStyle) {
-          parentNode.setAttribute('style', backupStyle);
-        }
+        /* 备份样式为空时也需要还原，否则min-width/min-height等样式会残留在容器上 */
+        parentNode.setAttribute('style', backupStyle);
       }, 2000);
     }
 
@@ -14382,7 +14397,7 @@ const h5Player = {
 
   capture () {
     const player = this.player();
-    videoCapturer.capture(player, true);
+    videoCapturer.capture(player, true, undefined, configManager.get('enhance.allowCrossOriginCapture'), configManager.get('enhance.captureWithCredentials'));
 
     /* 暂停画面 */
     if (!player.paused && !document.pictureInPictureElement && document.visibilityState !== 'visible') {
@@ -15161,6 +15176,9 @@ const h5Player = {
       debug.warn('快捷键能力已被禁用');
     }
 
+    /* 跨CORS截图被熔断时给出用户提示 */
+    videoCapturer.onFused = () => h5Player.tips(i18n.t('captureFused'));
+
     /* 响应来自跨域受限的视频检出事件 */
     monkeyMsg.on('videoDetected', async (name, oldVal, newVal, remote) => {
       if (newVal.originTab) {
@@ -15289,17 +15307,6 @@ async function h5PlayerInit () {
     }
   } else {
     debug.warn('UI组件已被禁用', configManager.get('ui.enable'));
-  }
-
-  /**
-   * 跟官网远程助手进行互动，有严重安全或信息洁癖的人手动注释下面代码即可
-   * 下面代码不会影响主要功能的正常使用
-   * 不注释代码，禁用UI界面也有同等效果
-   */
-  try {
-    configManager.get('ui.enable') !== false && remoteHelper.init();
-  } catch (e) {
-    debug.error('[remoteHelper.init]', e);
   }
 
   // console.clear = () => {}

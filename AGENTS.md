@@ -18,7 +18,7 @@ The rollup config in `config/rollup.config.js` selects the project via the `PROJ
 - **Package manager is Yarn Berry 3** (`nodeLinker: node-modules` in `.yarnrc.yml`). Don't use npm; run via `yarn`.
 - Import alias: `import ... from 'utils/...'` resolves to `src/libs/...` (defined in rollup config).
 - **Build artifacts are committed** to the repo: `dist/h5player.user.js`, `dist/h5player-ui.js`, `web-extension/inject.js` (566KB), and `src/h5player/ui/h5playerUI.es.js` (IIFE-wrapped into an ES module via `config/rollup.codeWraper.js`). Don't delete them.
-- `version` string lives in `src/h5player/version.js`; it is independent of (and currently out of sync with) the `version` in `package.json`.
+- `version` in `package.json` is the single source of truth. It is injected at build time by `config/rollup.config.js` (`injectVersion` plugin) into the `__H5PLAYER_VERSION__` placeholder in `src/h5player/version.js` and the `@version` header of `src/h5player/comment.js`. Don't edit those by hand; bump `package.json` and rebuild.
 - Babel transform is only applied in `MODE=prod` and only to projects whose name does **not** include `h5player`.
 - `.npmrc` points the registry at the Taobao mirror (npmmirror); remove it before any publish.
 - `.env` (not committed; see `.env.example`) is needed for docs release: `DOCS_TARGET_PATH`, `GITEE_DOCS_TARGET_PATH`.

@@ -4279,12 +4279,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           desc: i18n.t('moreActions'),
           subMenu: [
             {
-              title: 'Clean remote helper info',
-              desc: 'Clean remote helper info',
-              action: 'cleanRemoteHelperInfo',
-              disabled: !debug$1.isDebugMode()
-            },
-            {
               title: 'Print Player info',
               desc: 'Print Player info',
               action: 'printPlayerInfo',
@@ -4385,11 +4379,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               title: `${i18n.t('toggleStates')} ${i18n.t('autoGotoBufferedTime')}`,
               desc: `${i18n.t('toggleStates')} ${i18n.t('autoGotoBufferedTime')}`,
               action: 'toggleAutoGotoBufferedTime'
-            },
-            {
-              title: i18n.t('ffmpegScript'),
-              desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/xxxily/ffmpeg-script'
             }
           ]
         },
@@ -4529,11 +4518,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               args: ''
             },
             {
-              ...globalFunctional.openAddGroupChatPage,
-              action: 'openAddGroupChatPage',
-              args: ''
-            },
-            {
               ...globalFunctional.openChangeLogPage,
               action: 'openChangeLogPage',
               args: ''
@@ -4542,38 +4526,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
               ...globalFunctional.openCheckVersionPage,
               action: 'openCheckVersionPage',
               args: ''
-            },
-            {
-              ...globalFunctional.openDonatePage,
-              action: 'openDonatePage',
-              args: ''
-            },
-            // {
-            //   ...globalFunctional.openAboutDonatePage,
-            //   action: 'openAboutDonatePage',
-            //   args: ''
-            // },
-            {
-              ...globalFunctional.openAiProjectsPage,
-              action: 'openAiProjectsPage',
-              args: ''
-            },
-            {
-              ...globalFunctional.openAuthorHomePage,
-              action: 'openAuthorHomePage',
-              args: ''
-            }
-          ]
-        },
-        {
-          title: i18n.t('more'),
-          desc: i18n.t('more'),
-          disabled: true,
-          subMenu: [
-            {
-              title: i18n.t('ffmpegScript'),
-              desc: i18n.t('ffmpegScript'),
-              url: 'https://github.com/xxxily/ffmpeg-script'
             }
           ]
         }
@@ -4678,98 +4630,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
   function createLogoModTemplate () {
     const homepage = globalFunctional.getHomePageLink.fn();
     return `<a class="h5p-logo-mod" href="${homepage}" target="_blank">h5player</a>`
-  }
-
-  const defaultRecommendList = [];
-
-  function createRecommendModTemplate (refDom) {
-    const showMod = isGlobalStorageUsable && configManager$1.getGlobalStorage('ui.mod.recommend.enable');
-    if (!showMod) { return '' }
-
-    const refWidth = refDom.offsetWidth;
-    if (refWidth < 500) { return '' }
-
-    let recommendList = configManager$1.getGlobalStorage('recommendList') || defaultRecommendList;
-    recommendList = recommendList.filter(item => !item.disabled);
-
-    const curLang = i18n.language() || '';
-    /* 兼容各种可能的语言配置写法 */
-    const curLang2 = curLang.replace('-', '');
-    const curLang3 = curLang.replace('-', '_');
-    const curLang4 = curLang.split('-')[0];
-
-    /* 根据当前的language和recommendList的languages配置过滤出符合当前语言的recommendList */
-    recommendList = recommendList.filter(item => {
-      const lang = item.lang || item.language || item.languages;
-      if (lang) {
-        return i18n.isMatchCurLang(lang)
-      } else {
-        return true
-      }
-    });
-
-    if (!recommendList.length) { return '' }
-
-    /* 从recommendList里随机取5条数据，多余的不予以展示 */
-    if (recommendList.length > 5) { recommendList = recommendList.sort(() => Math.random() - 0.5).slice(0, 5); }
-
-    /* 根据recommendList里的priority字段进行排序，priority值越大越靠前 */
-    recommendList = recommendList.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-
-    const recommendHtml = recommendList.map(item => {
-      let title = item.title || '';
-      let desc = item.desc || '';
-      let url = item.url || '';
-
-      if (item.i18n) {
-        const i18nInfo = item.i18n[`${curLang}`] || item.i18n[`${curLang2}`] || item.i18n[`${curLang3}`] || item.i18n[`${curLang4}`];
-        if (i18nInfo) {
-          title = i18nInfo.title || title;
-          desc = i18nInfo.desc || desc;
-          url = i18nInfo.url || url;
-        }
-      }
-
-      return `<a class="h5p-recommend-item" href="${url}" title="${desc}" target="_blank">${title}</a>`
-    }).join('');
-
-    return `<div class="h5p-recommend-mod" >${recommendHtml}</div>`
-  }
-
-  /**
-   * 注册Recommend切换逻辑，每4s检测一次当前哪个h5p-recommend-item上有h5p-recommend-item__active，然后将h5p-recommend-item__active切换到下一个元素，如此往复
-   * 当鼠标移动到recommendWrap的时候停止切换，移开后继续切换
-   */
-  function registerRecommendModToggle (recommendWrap, reRender) {
-    if (!reRender && (!recommendWrap || recommendWrap.__h5pRecommendModRegistered__)) { return }
-
-    let recommendIndex = 0;
-    recommendWrap.__stopToggle__ = false;
-
-    const toggleRecommend = () => {
-      if (recommendWrap.__stopToggle__) { return }
-      const recommendItems = recommendWrap.querySelectorAll('.h5p-recommend-item');
-      recommendItems.forEach((item, index) => {
-        if (index === recommendIndex) {
-          item.classList.add('h5p-recommend-item__active');
-        } else {
-          item.classList.remove('h5p-recommend-item__active');
-        }
-      });
-
-      recommendIndex = (recommendIndex + 1) % recommendItems.length;
-    };
-
-    toggleRecommend();
-
-    clearInterval(recommendWrap.__h5pRecommendModInterval__);
-    recommendWrap.__h5pRecommendModInterval__ = setInterval(toggleRecommend, 3000);
-    if (!reRender) {
-      recommendWrap.addEventListener('mouseenter', () => { recommendWrap.__stopToggle__ = true; });
-      recommendWrap.addEventListener('mouseleave', () => { recommendWrap.__stopToggle__ = false; });
-    }
-
-    recommendWrap.__h5pRecommendModRegistered__ = true;
   }
 
   /**
@@ -4952,9 +4812,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           <div class="h5p-logo-wrap">
             ${createLogoModTemplate()}
           </div>
-          <div class="h5p-recommend-wrap">
-            <div style="overflow:hidden">${createRecommendModTemplate(element)}</div>
-          </div>
           <div class="h5p-menu-wrap">
             ${menuTemplate}
           </div>
@@ -4962,8 +4819,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
         </sl-popup>
       </div>
     `, document.body)[0];
-
-      setTimeout(() => { registerRecommendModToggle(popupWrap.querySelector('.h5p-recommend-wrap')); }, 100);
 
       const popup = popupWrap.querySelector('sl-popup');
 
@@ -5028,21 +4883,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
 
       /* 油管首次渲染会莫名其妙的出错，所以此处延迟一段时间重新渲染一次菜单 */
       setTimeout(() => { reRenderMenuMod(); }, 400);
-
-      /* 重新渲染h5p-recommend-mod对应的推荐模块，如果位置不够则对隐藏该模块 */
-      function reRenderRecommendMod () {
-        const recommendWrap = popupWrap.querySelector('.h5player-popup-content .h5p-recommend-wrap');
-        const recommendMod = popupWrap.querySelector('.h5player-popup-content .h5p-recommend-wrap>div');
-        if (recommendWrap && recommendMod) {
-          recommendWrap.removeChild(recommendMod);
-
-          const newRecommendModTemplate = `<div style="overflow:hidden">${createRecommendModTemplate(element)}</div>`;
-          parseHTML(newRecommendModTemplate, recommendWrap);
-
-          registerRecommendModToggle(recommendWrap, true);
-          // debug.log('[h5playerUI][popup][reRenderRecommendMod]')
-        }
-      }
 
       const activeClass = 'h5player-popup-active';
       const fullActiveClass = 'h5player-popup-full-active';
@@ -5224,7 +5064,6 @@ const h5playerUI = function (window) {var h5playerUI = (function () {
           if (newRect.width !== popup.oldRect.width) {
             popup.oldRect = newRect;
             reRenderMenuMod();
-            reRenderRecommendMod();
           }
         }
       });

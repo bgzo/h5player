@@ -12,8 +12,6 @@
 
 ::: tip
 通过自定义配置，基本可以满足绝大部分的个性化需求，但同时要求你有一定的编程能力。  
-如果是简单的自定义，例如自定义快捷键，不懂的可以入群，问群友即可。  
-复杂的功能定制，不想折腾的，可以考虑找作者付费定制。  
 :::
 
 您可参照下面这份脚本来进行自定义：[https://greasyfork.org/zh-CN/scripts/455396](https://greasyfork.org/zh-CN/scripts/455396)  
@@ -26,13 +24,13 @@
 // ==UserScript==
 // @name         HTML5播放器自定义配置
 // @name:en      HTML5 player enhanced script custom configuration
-// @namespace    https://github.com/xxxily/h5player
-// @homepage     https://github.com/xxxily/h5player
+// @namespace    https://github.com/bgzo/h5player
+// @homepage     https://github.com/bgzo/h5player
 // @version      0.0.1
 // @description  HTML5播放器自定义配置，按需定制自己的功能
 // @description:en  HTML5 video player enhanced script custom configuration
 // @author       ankvps
-// @icon         https://cdn.jsdelivr.net/gh/xxxily/h5player@master/logo.png
+// @icon         https://cdn.jsdelivr.net/gh/bgzo/h5player@master/logo.png
 // @match        *://*/*
 // @grant        unsafeWindow
 // @run-at       document-start

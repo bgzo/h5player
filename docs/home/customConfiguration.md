@@ -12,8 +12,6 @@ Once enabled, external scripts can be used to define the plugin's shortcuts and 
 
 ::: tip
 Through custom configuration, most personalized needs can be met, but this requires you to have some programming skills.  
-For simple customizations such as defining your own shortcuts, you can join the user group and ask other members if you don't understand.  
-For complex functionalities, if you don't want to bother with customization, you might consider hiring the author for a paid customization service.  
 :::
 
 You can refer to the following script for customization: [https://greasyfork.org/zh-CN/scripts/455396](https://greasyfork.org/zh-CN/scripts/455396)  
@@ -26,13 +24,13 @@ Below is the complete custom reference code:
 // ==UserScript==
 // @name         HTML5播放器自定义配置
 // @name:en      HTML5 player enhanced script custom configuration
-// @namespace    https://github.com/xxxily/h5player
-// @homepage     https://github.com/xxxily/h5player
+// @namespace    https://github.com/bgzo/h5player
+// @homepage     https://github.com/bgzo/h5player
 // @version      0.0.1
 // @description  HTML5播放器自定义配置，按需定制自己的功能
 // @description:en  HTML5 video player enhanced script custom configuration
 // @author       ankvps
-// @icon         https://cdn.jsdelivr.net/gh/xxxily/h5player@master/logo.png
+// @icon         https://cdn.jsdelivr.net/gh/bgzo/h5player@master/logo.png
 // @match        *://*/*
 // @grant        unsafeWindow
 // @run-at       document-start

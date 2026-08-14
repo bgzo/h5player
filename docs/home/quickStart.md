@@ -3,7 +3,7 @@
 Web Player Enhancement Script  
 
 - Official Website: [h5player.anzz.top](https://h5player.anzz.top)  
-- GitHub: [github.com/xxxily/h5player](https://github.com/xxxily/h5player)  
+- GitHub: [github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
 - GreasyFork: [greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
 - One-Click Installation: [h5player.anzz.top/h5player.user.js](https://update.greasyfork.org/scripts/381682/HTML5%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8%E5%A2%9E%E5%BC%BA%E8%84%9A%E6%9C%AC.user.js)
 
@@ -47,23 +47,11 @@ Moreover, it also offers the ability to fast forward short pre/post rolls, speed
 - Live video stream extraction.
 - Customizable feature additions through configurations.  
 
-## Discussion Groups
-
-<br />
-
-| Add me and I'll Invite You to the Group<br/>(Specify: from h5player) | Telegram Group<br/>(<a href="https://t.me/h5player" target="_blank">Join Directly</a>) |
-| :----: | :----: |
-| <img src="https://h5player.anzz.top/assets/img/WeChat2.png?t=2022.11.21" width=280 /> |  <img src="https://h5player.anzz.top/assets/img/tg.jpg?t=2022.11.21" width=280 /> |
-
-<br />
-
 ## Custom Functionality
 
 The script already supports most commonly used features. If you need more, you can achieve this through custom configurations.
 For details, refer to: [Custom Configurations](https://h5player.anzz.top/home/customConfiguration.html)  
 <br />
-If you don't know how to program or don't want the hassle, but have a demand for more complex features, you may consider paying the author for 'Paid Customization';  
-[Contact the author through the above WeChat or TG](#Discussion Groups)  
 
 ## Installation
 
@@ -185,7 +173,7 @@ Below is a list of some common websites for easy click testing:
 | AliYun Disk Audio Files | [https://aliyundrive.com/](https://aliyundrive.com/) |
 | Other Network Disk Audio Files | ...... |
 
-If the website you frequent is not well supported, feel free to raise [issues](https://github.com/xxxily/h5player/issues)  
+If the website you frequent is not well supported, feel free to raise [issues](https://github.com/bgzo/h5player/issues)  
 
 ## Other Notes
 
@@ -194,20 +182,5 @@ If the website you frequent is not well supported, feel free to raise [issues](h
 
 ## Update Log
 
-- [H5player ChangeLog](https://github.com/xxxily/h5player/blob/master/changeLog.md)
+- [H5player ChangeLog](https://github.com/bgzo/h5player/blob/hx/changeLog.md)
 
-## Support the Author
-
-If my efforts have brought convenience to you, please do not hesitate to give your appreciation.  
-
-[How much in donations does an open-source work with a million installations receive in a year?](./aboutDonate.md)  
-
-PayPal: [paypal.me/BlazeLiu](https://paypal.me/BlazeLiu)  
-
-<p>
-  <a href="https://h5player.anzz.top" target="_blank">
-  <img src="https://h5player.anzz.top/assets/img/donate.png" width=480 alt="如果我的努力给你带来了便利，请不要吝啬你的赞赏" />
-  </a>
-</p>
-
-<br />
