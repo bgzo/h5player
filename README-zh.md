@@ -53,7 +53,7 @@
 ## 功能定制
 
 脚本已经支持了大部分常用的功能，如果你有更多的需求，可以通过自定义配置来实现。  
-具体参考：[自定义配置](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/customConfiguration)  
+具体参考：[自定义配置](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/customConfiguration.md)  
 <br />
 
 ## 安装
@@ -65,12 +65,12 @@
 
 - **[h5player.user.js (点我直接安装)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
-更详细的安装帮助看这里：[详细安装教程](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/install)  
+更详细的安装帮助看这里：[详细安装教程](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/install.md)  
 
 ## 使用文档
 
-- [功能手册](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/feature)
-- [常见问题Q&A](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/q&a)
+- [功能手册](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/feature.md)
+- [常见问题Q&A](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/q&a.md)
   
 ## 快捷键列表
 
