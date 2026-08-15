@@ -111,10 +111,10 @@ tar -xvf tampermonkey_stable.crx
 
 安装好后的运行效果如下所示：
 
-<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/kiwi_browser_effect01.83b4a12a.jpg" target="_blank">
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/home/img/kiwi_browser_effect01.jpg" target="_blank">
   <img src="./img/kiwi_browser_effect01.jpg" alt="h5player_for_kiwi_browser" width=480>
 </a>
-<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/kiwi_browser_effect02.c5541da0.jpg" target="_blank">
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/home/img/kiwi_browser_effect02.jpg" target="_blank">
   <img src="./img/kiwi_browser_effect02.jpg" alt="h5player_for_kiwi_browser" width=480>
 </a>
 

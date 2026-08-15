@@ -14,7 +14,6 @@ export const en = defineConfig({
           {
             text: 'Install',
             items: [
-              { text: 'Greasy Fork', link: 'https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js', target: '_blank' },
               { text: 'GitHub dist', link: 'https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js', target: '_blank' },
             ]
           },

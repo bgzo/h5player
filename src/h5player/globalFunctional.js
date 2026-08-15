@@ -13,11 +13,14 @@ function refreshPage(msg) {
 
 const isChinese = () => i18n.language().indexOf('zh') > -1
 
-const docsHomePage = 'https://github.com/bgzo/h5player/tree/hx/docs'
-
 function getHomePage() {
-  /* 官网入口统一指向fork仓库的docs目录 */
-  return docsHomePage
+  const homePageLinks = [
+    'https://h5player.anzz.site/zh/',
+    'https://h5player.anzz.top'
+  ]
+
+  /* 从homePageLinks中随机选取一个链接返回 */
+  return isChinese() ? homePageLinks[0] : homePageLinks[1]
 }
 
 function openDocsByPath(path) {
@@ -29,16 +32,12 @@ function openDocsByPath(path) {
     path = '/' + path
   }
 
-  /* 确保是.md文件路径，方便在GitHub上直接定位文档 */
-  if (!path.endsWith('.md')) {
-    path += '.md'
-  }
-
-  const basePath = docsHomePage
+  const chinese = isChinese()
+  const basePath = chinese ? 'https://h5player.anzz.site' : 'https://h5player.anzz.top'
   let url = basePath + path
 
   /* 判断是否为中文环境，且link不是/zh开头，则自动加上/zh前缀 */
-  if (isChinese() && !path.startsWith('/zh')) {
+  if (chinese && !path.startsWith('/zh')) {
     url = basePath + '/zh' + path
   }
 
@@ -68,8 +67,8 @@ const globalFunctional = {
     desc: i18n.t('hotkeysDocs'),
     fn: () => {
       const hotkeysDocs = [
-        'https://github.com/bgzo/h5player/blob/hx/docs/zh/home/quickStart.md#%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%88%97%E8%A1%A8',
-        'https://github.com/bgzo/h5player/blob/hx/docs/home/quickStart.md#shortcut-key-list'
+        'https://h5player.anzz.site/zh/home/quickStart#%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%88%97%E8%A1%A8',
+        'https://h5player.anzz.top/home/quickStart#shortcut-key-list'
       ]
       openInTab(isChinese() ? hotkeysDocs[0] : hotkeysDocs[1])
     }
@@ -103,7 +102,10 @@ const globalFunctional = {
     title: i18n.t('openCustomConfigurationEditor'),
     desc: i18n.t('openCustomConfigurationEditor'),
     fn: () => {
-      openInTab('https://github.com/bgzo/h5player/tree/hx/src/tools/json-editor')
+      const jsoneditorUrl = isChinese()
+        ? 'https://h5player.anzz.site/tools/json-editor/index.html?mode=tree&saveHandlerName=saveH5PlayerConfig&expandAll=true&json='
+        : 'https://h5player.anzz.top/tools/json-editor/index.html?mode=tree&saveHandlerName=saveH5PlayerConfig&expandAll=true&json='
+      openInTab(jsoneditorUrl)
     }
   },
 
