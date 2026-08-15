@@ -4,7 +4,6 @@ Web Player Enhancement Script
 
 - Official Website: [GitHub Docs](https://github.com/bgzo/h5player/tree/hx/docs)  
 - GitHub: [github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
-- Release: [github.com/bgzo/h5player/releases](https://github.com/bgzo/h5player/releases)
 - One-Click Installation: [https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)
 
 <br />

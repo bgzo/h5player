@@ -115,7 +115,7 @@ class BroadcastMessage {
      */
     this.inTrustedDomainPages = opts.inTrustedDomainPages || false
 
-    // this.trustedDomainPages = 'https://github.com/bgzo/h5player/tree/hx/docs'
+    // this.trustedDomainPages = 'https://h5player.anzz.top/demo/postMessage.html'
     this.trustedDomainPages = opts.trustedDomainPages || ''
 
     /**
