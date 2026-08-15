@@ -24,4 +24,3 @@ features:
 - title: Open Source Code
   details: The script code is completely open for everyone to monitor and review, rejecting malicious code and creating a safe and practical auxiliary script. It contributes to the open-source community within its capabilities.
 ---
-

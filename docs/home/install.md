@@ -5,7 +5,7 @@
 
 **After installing the Tampermonkey extension**, click the link below for one-click installation:
 
-- **[h5player.user.js (Click here to directly install)](https://h5player.anzz.top/h5player.user.js)**
+- **[h5player.user.js (Click here to directly install)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
 If you are first-time installing Tampermonkey, the methods are as follows:
 
@@ -26,11 +26,11 @@ If your network can access the app store address below, then install directly:
 
 **After installing the Tampermonkey extension**, click the link below to complete the script installation:
 
-**[h5player.user.js (Click here to install the H5Player enhancement script)](https://update.greasyfork.org/scripts/381682/HTML5%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8%E5%A2%9E%E5%BC%BA%E8%84%9A%E6%9C%AC.user.js)**
+**[h5player.user.js (Click here to install the H5Player enhancement script)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
 You can also enter the URL below in the browser's address bar to install the script:
 
-- [https://h5player.anzz.top/h5player.user.js](https://h5player.anzz.top/h5player.user.js)
+- [https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)
 
 ## Installation in China
 
@@ -72,16 +72,16 @@ tar -xvf tampermonkey_stable.crx
 
 ### Step Four: Install the h5player Enhancement Script
 
-**[h5player.user.js (Click here to install the H5Player enhancement script)](https://update.greasyfork.org/scripts/381682/HTML5%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8%E5%A2%9E%E5%BC%BA%E8%84%9A%E6%9C%AC.user.js)**
+**[h5player.user.js (Click here to install the H5Player enhancement script)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
 You can also enter the following URL in the browser's address bar to complete the script installation:
 
-- [https://h5player.anzz.top/h5player.user.js](https://h5player.anzz.top/h5player.user.js)
+- [https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)
 
 The operational effect after installation is shown below:
 
-<a href="https://h5player.anzz.top/assets/img/h5player_ui.jpg" target="_blank">
-  <img src="https://h5player.anzz.top/assets/img/h5player_ui.jpg" alt="h5player-ui" />
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" alt="h5player-ui" />
 </a>
 
 ## Mobile Installation
@@ -110,10 +110,10 @@ After installing the Kiwi Browser, install the Tampermonkey plugin by following 
 
 The operational effect after installation is shown below:
 
-<a href="https://h5player.anzz.top/assets/img/kiwi_browser_effect01.83b4a12a.jpg" target="_blank">
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/home/img/kiwi_browser_effect01.jpg" target="_blank">
   <img src="./img/kiwi_browser_effect01.jpg" alt="h5player_for_kiwi_browser" width=480>
 </a>
-<a href="https://h5player.anzz.top/assets/img/kiwi_browser_effect02.c5541da0.jpg" target="_blank">
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/home/img/kiwi_browser_effect02.jpg" target="_blank">
   <img src="./img/kiwi_browser_effect02.jpg" alt="h5player_for_kiwi_browser" width=480>
 </a>
 

@@ -4,11 +4,11 @@
 
 网页播放器增强脚本  
 
-- 官网地址：[h5player.anzz.site](https://h5player.anzz.site/zh)  
+- 官网地址：[GitHub Docs](https://github.com/bgzo/h5player/tree/hx/docs/zh)  
 - GitHub地址：[github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
 - Gitee 地址：[gitee.com/ankvps/h5player](https://gitee.com/ankvps/h5player)  
-- GreasyFork：[greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
-- 一键安装地址：[h5player.anzz.site/h5player.user.js](https://h5player.anzz.site/h5player.user.js)
+- 发布：[github.com/bgzo/h5player/releases](https://github.com/bgzo/h5player/releases)
+- 一键安装地址：[https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)
 
 <br />
 
@@ -20,8 +20,8 @@
 
 还有片前片后短视频快进、在线教程/教育视频倍速快学、音视频文件离线私藏等能力  
 
-<a href="https://h5player.anzz.site/assets/img/h5player_ui.jpg" target="_blank">
-  <img src="https://h5player.anzz.site/assets/img/h5player_ui.jpg" alt="h5player-ui" />
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" alt="h5player-ui" />
 </a>
 
 ## 应用场景
@@ -53,7 +53,7 @@
 ## 功能定制
 
 脚本已经支持了大部分常用的功能，如果你有更多的需求，可以通过自定义配置来实现。  
-具体参考：[自定义配置](https://h5player.anzz.site/zh/home/customConfiguration)  
+具体参考：[自定义配置](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/customConfiguration.md)  
 <br />
 
 ## 安装
@@ -63,14 +63,14 @@
 
 **安装好油猴插件后**，点击下面的链接即可一键安装：  
 
-- **[h5player.user.js (点我直接安装)](https://update.greasyfork.org/scripts/381682/HTML5%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8%E5%A2%9E%E5%BC%BA%E8%84%9A%E6%9C%AC.user.js)**
+- **[h5player.user.js (点我直接安装)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
-更详细的安装帮助看这里：[详细安装教程](https://h5player.anzz.site/zh/home/install)  
+更详细的安装帮助看这里：[详细安装教程](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/install.md)  
 
 ## 使用文档
 
-- [功能手册](https://h5player.anzz.site/zh/home/feature)
-- [常见问题Q&A](https://h5player.anzz.site/zh/home/q&a)
+- [功能手册](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/feature.md)
+- [常见问题Q&A](https://github.com/bgzo/h5player/tree/hx/docs/zh/home/q&a.md)
   
 ## 快捷键列表
 
@@ -165,7 +165,8 @@
 | Magisto | [https://www.magisto.com](https://www.magisto.com) |
 | CBS | [https://www.cbs.com](https://www.cbs.com) |
 | FC2 Video | [https://video.fc2.com](https://video.fc2.com) |
-| 巴哈姆特动画疯 | [https://ani.gamer.com.tw](https://ani.gamer.com.tw/) |
+| 动画疯 | https://ani.gamer.com.tw |
+| Anime1 | https://anime1.me |
 
 |  音频网站   | URL    |
 | --- | --- |

@@ -14,7 +14,6 @@ export const en = defineConfig({
           {
             text: 'Install',
             items: [
-              { text: 'Greasy Fork', link: 'https://greasyfork.org/zh-CN/scripts/381682', target: '_blank' },
               { text: 'GitHub dist', link: 'https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js', target: '_blank' },
             ]
           },
@@ -22,7 +21,6 @@ export const en = defineConfig({
             text: 'Feedback',
             items: [
               { text: 'GitHub Issues', link: 'https://github.com/bgzo/h5player/issues', target: '_blank' },
-              { text: 'Greasy Fork Feedback', link: 'https://greasyfork.org/zh-CN/scripts/381682/feedback', target: '_blank' },
             ]
           },
           {
