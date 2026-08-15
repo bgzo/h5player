@@ -2,11 +2,11 @@
 
 网页播放器增强脚本  
 
-- 官网地址：[h5player.anzz.site](https://h5player.anzz.site)  
+- 官网地址：[GitHub Docs](https://github.com/bgzo/h5player/tree/hx/docs)  
 - GitHub地址：[github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
 - Gitee 地址：[gitee.com/ankvps/h5player](https://gitee.com/ankvps/h5player)  
-- GreasyFork：[greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
-- 一键安装地址：[h5player.anzz.site/h5player.user.js](https://h5player.anzz.site/h5player.user.js)
+- 发布：[github.com/bgzo/h5player/releases](https://github.com/bgzo/h5player/releases)
+- 一键安装地址：[https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)
 
 <br />
 
@@ -18,8 +18,8 @@
 
 还有片前片后短视频快进、在线教程/教育视频倍速快学、音视频文件离线私藏等能力  
 
-<a href="https://h5player.anzz.site/assets/img/h5player_ui.jpg" target="_blank">
-  <img src="https://h5player.anzz.site/assets/img/h5player_ui.jpg" alt="h5player-ui" />
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" alt="h5player-ui" />
 </a>
 
 ## 应用场景
@@ -61,7 +61,7 @@
 
 **安装好油猴插件后**，点击下面的链接即可一键安装：  
 
-- **[h5player.user.js (点我直接安装)](https://h5player.anzz.site/h5player.user.js)**
+- **[h5player.user.js (点我直接安装)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
 更详细的安装帮助看这里：[详细安装教程](./install.md)  
 

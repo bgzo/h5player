@@ -2,10 +2,10 @@
 
 Web Player Enhancement Script  
 
-- Official Website: [h5player.anzz.top](https://h5player.anzz.top)  
+- Official Website: [GitHub Docs](https://github.com/bgzo/h5player/tree/hx/docs)  
 - GitHub: [github.com/bgzo/h5player](https://github.com/bgzo/h5player)  
-- GreasyFork: [greasyfork.org/scripts/381682](https://greasyfork.org/scripts/381682)
-- One-Click Installation: [h5player.anzz.top/h5player.user.js](https://update.greasyfork.org/scripts/381682/HTML5%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8%E5%A2%9E%E5%BC%BA%E8%84%9A%E6%9C%AC.user.js)
+- Release: [github.com/bgzo/h5player/releases](https://github.com/bgzo/h5player/releases)
+- One-Click Installation: [https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)
 
 <br />
 
@@ -17,8 +17,8 @@ The script allows keyboard shortcuts for full course control, supporting functio
 
 Moreover, it also offers the ability to fast forward short pre/post rolls, speed up learning from online tutorials/educational videos, and privately store offline audio and video files.  
 
-<a href="https://h5player.anzz.top/assets/img/h5player_ui.jpg" target="_blank">
-  <img src="https://h5player.anzz.top/assets/img/h5player_ui.jpg" alt="h5player-ui" />
+<a href="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/bgzo/h5player/hx/docs/public/assets/img/h5player_ui.jpg" alt="h5player-ui" />
 </a>
 
 ## Application Scenarios
@@ -50,7 +50,7 @@ Moreover, it also offers the ability to fast forward short pre/post rolls, speed
 ## Custom Functionality
 
 The script already supports most commonly used features. If you need more, you can achieve this through custom configurations.
-For details, refer to: [Custom Configurations](https://h5player.anzz.top/home/customConfiguration.html)  
+For details, refer to: [Custom Configurations](https://github.com/bgzo/h5player/tree/hx/docs/home/customConfiguration.md)  
 <br />
 
 ## Installation
@@ -60,14 +60,14 @@ For details, refer to: [Custom Configurations](https://h5player.anzz.top/home/cu
 
 **After installing the Tampermonkey plug-in**, click the link below for one-click installation:
 
-- **[h5player.user.js (Click me for direct installation)](https://update.greasyfork.org/scripts/381682/HTML5%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8%E5%A2%9E%E5%BC%BA%E8%84%9A%E6%9C%AC.user.js)**
+- **[h5player.user.js (Click me for direct installation)](https://raw.githubusercontent.com/bgzo/h5player/hx/dist/h5player.user.js)**
 
-For more detailed installation help, see here: [Detailed Installation Tutorial](https://h5player.anzz.top/home/install.html)  
+For more detailed installation help, see here: [Detailed Installation Tutorial](https://github.com/bgzo/h5player/tree/hx/docs/home/install.md)  
 
 ## User Guide
 
-- [Feature Manual](https://h5player.anzz.top/home/feature.html)
-- [Frequently Asked Questions Q&A](https://h5player.anzz.top/home/q&a.html)
+- [Feature Manual](https://github.com/bgzo/h5player/tree/hx/docs/home/feature.md)
+- [Frequently Asked Questions Q&A](https://github.com/bgzo/h5player/tree/hx/docs/home/q&a.md)
   
 ## Shortcut Key List
 

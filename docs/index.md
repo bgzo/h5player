@@ -11,7 +11,7 @@ hero:
       link: /home/quickStart
     - theme: brand
       text: 中文站 →
-      link: https://h5player.anzz.site/zh
+      link: https://github.com/bgzo/h5player/tree/hx/docs/zh
     - theme: alt
       text: GitHub
       link: https://github.com/bgzo/h5player
