@@ -163,7 +163,8 @@ Below is a list of some common websites for easy click testing:
 | Magisto | [https://www.magisto.com](https://www.magisto.com) |
 | CBS | [https://www.cbs.com](https://www.cbs.com) |
 | FC2 Video | [https://video.fc2.com](https://video.fc2.com) |
-| Bahamute | [https://ani.gamer.com.tw](https://ani.gamer.com.tw/) |
+| Bahamute | https://ani.gamer.com.tw |
+| Anime1 | https://anime1.me |
 
 | Audio Websites | URL |
 | --- | --- |
